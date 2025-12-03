@@ -1,7 +1,9 @@
 """Test file for entity models validation"""
 
 import sys
-sys.path.insert(0, '/Users/koraym/Desktop/socialmedia/backend')
+import os
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from datetime import datetime
 from api.entities.entities import (
