@@ -9,9 +9,9 @@ from api.controllers.message_controller import message_bp
 api_bp = Blueprint('api', __name__)
 
 # Register all controller blueprints
-api_bp.register_blueprint(user_bp, url_prefix='/users')
-api_bp.register_blueprint(post_bp, url_prefix='/posts')
-api_bp.register_blueprint(comment_bp, url_prefix='/comments')
-api_bp.register_blueprint(community_bp, url_prefix='/communities')
-api_bp.register_blueprint(follow_bp, url_prefix='/follow')
-api_bp.register_blueprint(message_bp, url_prefix='/messages')
+api_bp.register_blueprint(user_bp)
+api_bp.register_blueprint(post_bp)
+api_bp.register_blueprint(comment_bp)
+api_bp.register_blueprint(community_bp)
+api_bp.register_blueprint(follow_bp)
+api_bp.register_blueprint(message_bp)
