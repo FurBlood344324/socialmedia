@@ -1,7 +1,8 @@
 import jwt
 import os
 from datetime import datetime, timedelta
-from flask import request
+from flask import request, jsonify
+from functools import wraps
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -46,3 +47,22 @@ def generate_token(user_id: int, username: str) -> str:
         "iat": datetime.utcnow()
     }
     return encode_token(payload)
+
+
+def token_required(f):
+    """Decorator to protect routes with JWT authentication"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Extract and decode token
+        payload = decode_auth_token()
+        
+        if not payload:
+            return jsonify({"error": "Invalid or missing token"}), 401
+        
+        # Attach user_id to request object
+        request.user_id = payload.get("user_id")
+        request.username = payload.get("username")
+        
+        return f(*args, **kwargs)
+    
+    return decorated_function
