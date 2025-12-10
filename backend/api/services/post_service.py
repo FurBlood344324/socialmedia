@@ -31,11 +31,15 @@ class PostService:
             "post": created_post.to_dict()
         }
 
-    def get_post(self, post_id: int) -> Optional[Dict[str, Any]]:
-        """Get post by ID"""
+    def get_post(self, post_id: int, user_id: Optional[int] = None) -> Optional[Dict[str, Any]]:
+        """Get post by ID with like count and user's like status"""
         post = self.post_repository.get_by_id(post_id)
         if post:
-            return post.to_dict()
+            post_dict = post.to_dict()
+            post_dict['like_count'] = self.post_repository.count_likes(post_id)
+            if user_id:
+                post_dict['liked_by_user'] = self.post_repository.has_user_liked(post_id, user_id)
+            return post_dict
         return None
 
     def get_user_posts(self, user_id: int, limit: int = 50, offset: int = 0) -> Dict[str, Any]:
@@ -120,4 +124,76 @@ class PostService:
             "posts": [post.to_dict() for post in posts],
             "limit": limit,
             "offset": offset
+        }
+
+    def like_post(self, post_id: int, user_id: int) -> Dict[str, Any]:
+        """Like a post with validation"""
+        # Get post
+        post = self.post_repository.get_by_id(post_id)
+        if not post:
+            return {"success": False, "error": "Post not found"}
+        
+        # Prevent liking own posts
+        if post.user_id == user_id:
+            return {"success": False, "error": "You cannot like your own posts"}
+        
+        # Check if already liked
+        if self.post_repository.has_user_liked(post_id, user_id):
+            return {"success": False, "error": "You have already liked this post"}
+        
+        # Add like
+        success = self.post_repository.like_post(post_id, user_id)
+        
+        if success:
+            return {
+                "success": True,
+                "message": "Post liked successfully",
+                "like_count": self.post_repository.count_likes(post_id)
+            }
+        return {"success": False, "error": "Failed to like post"}
+
+    def unlike_post(self, post_id: int, user_id: int) -> Dict[str, Any]:
+        """Unlike a post"""
+        # Get post
+        post = self.post_repository.get_by_id(post_id)
+        if not post:
+            return {"success": False, "error": "Post not found"}
+        
+        # Check if liked
+        if not self.post_repository.has_user_liked(post_id, user_id):
+            return {"success": False, "error": "You have not liked this post"}
+        
+        # Remove like
+        success = self.post_repository.unlike_post(post_id, user_id)
+        
+        if success:
+            return {
+                "success": True,
+                "message": "Post unliked successfully",
+                "like_count": self.post_repository.count_likes(post_id)
+            }
+        return {"success": False, "error": "Failed to unlike post"}
+
+    def get_like_count(self, post_id: int) -> Dict[str, Any]:
+        """Get like count for a post"""
+        # Verify post exists
+        post = self.post_repository.get_by_id(post_id)
+        if not post:
+            return {"success": False, "error": "Post not found"}
+        
+        count = self.post_repository.count_likes(post_id)
+        return {"success": True, "like_count": count}
+
+    def get_post_likes(self, post_id: int) -> Dict[str, Any]:
+        """Get users who liked a post"""
+        # Verify post exists
+        post = self.post_repository.get_by_id(post_id)
+        if not post:
+            return {"success": False, "error": "Post not found"}
+        
+        likes = self.post_repository.get_post_likes(post_id)
+        return {
+            "success": True,
+            "likes": [like.to_dict() for like in likes],
+            "count": len(likes)
         }

@@ -1,6 +1,6 @@
 from sqlalchemy import text
 from api.extensions import db
-from api.entities.entities import Post
+from api.entities.entities import Post, PostLike
 from typing import Optional, List
 
 
@@ -124,3 +124,54 @@ class PostRepository:
             result = self.db.session.execute(query)
         
         return result.scalar()
+
+    def like_post(self, post_id: int, user_id: int) -> bool:
+        """Add a like to a post"""
+        try:
+            query = text("""
+                INSERT INTO PostLikes (post_id, user_id)
+                VALUES (:post_id, :user_id)
+            """)
+            self.db.session.execute(query, {"post_id": post_id, "user_id": user_id})
+            self.db.session.commit()
+            return True
+        except Exception:
+            self.db.session.rollback()
+            return False
+
+    def unlike_post(self, post_id: int, user_id: int) -> bool:
+        """Remove a like from a post"""
+        query = text("""
+            DELETE FROM PostLikes 
+            WHERE post_id = :post_id AND user_id = :user_id
+            RETURNING post_id
+        """)
+        result = self.db.session.execute(query, {"post_id": post_id, "user_id": user_id})
+        self.db.session.commit()
+        return result.fetchone() is not None
+
+    def get_post_likes(self, post_id: int) -> List[PostLike]:
+        """Get all users who liked a post"""
+        query = text("""
+            SELECT post_id, user_id, created_at 
+            FROM PostLikes 
+            WHERE post_id = :post_id
+            ORDER BY created_at DESC
+        """)
+        result = self.db.session.execute(query, {"post_id": post_id})
+        return [PostLike.from_row(row) for row in result.fetchall()]
+
+    def count_likes(self, post_id: int) -> int:
+        """Count the number of likes on a post"""
+        query = text("SELECT COUNT(*) FROM PostLikes WHERE post_id = :post_id")
+        result = self.db.session.execute(query, {"post_id": post_id})
+        return result.scalar()
+
+    def has_user_liked(self, post_id: int, user_id: int) -> bool:
+        """Check if a user has liked a post"""
+        query = text("""
+            SELECT 1 FROM PostLikes 
+            WHERE post_id = :post_id AND user_id = :user_id
+        """)
+        result = self.db.session.execute(query, {"post_id": post_id, "user_id": user_id})
+        return result.fetchone() is not None

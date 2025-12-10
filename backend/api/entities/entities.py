@@ -150,6 +150,31 @@ class Post:
 
 
 @dataclass
+class PostLike:
+    """PostLike model for post likes"""
+    post_id: Optional[int] = None
+    user_id: Optional[int] = None
+    created_at: Optional[datetime] = None
+
+    @classmethod
+    def from_row(cls, row) -> Optional['PostLike']:
+        if row is None:
+            return None
+        return cls(
+            post_id=row.post_id,
+            user_id=row.user_id,
+            created_at=row.created_at
+        )
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "post_id": self.post_id,
+            "user_id": self.user_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None
+        }
+
+
+@dataclass
 class Comment:
     """Comment model for post comments"""
     comment_id: Optional[int] = None

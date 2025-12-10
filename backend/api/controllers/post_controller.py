@@ -28,7 +28,7 @@ def create_post():
 @token_required
 def get_post(post_id):
     """Get a specific post by ID"""
-    post = post_service.get_post(post_id)
+    post = post_service.get_post(post_id, request.user_id)
     
     if post:
         return jsonify({"success": True, "post": post}), 200
@@ -89,3 +89,42 @@ def get_feed():
     
     result = post_service.get_feed(request.user_id, limit, offset)
     return jsonify({"success": True, **result}), 200
+
+
+@post_bp.route('/posts/<int:post_id>/like', methods=['POST'])
+@token_required
+def like_post(post_id):
+    """Like a post"""
+    result = post_service.like_post(post_id, request.user_id)
+    
+    if result['success']:
+        return jsonify(result), 200
+    
+    # Return 400 for validation errors (own post, already liked), 404 for not found
+    status_code = 404 if "not found" in result.get('error', '').lower() else 400
+    return jsonify(result), status_code
+
+
+@post_bp.route('/posts/<int:post_id>/like', methods=['DELETE'])
+@token_required
+def unlike_post(post_id):
+    """Unlike a post"""
+    result = post_service.unlike_post(post_id, request.user_id)
+    
+    if result['success']:
+        return jsonify(result), 200
+    
+    # Return 400 for validation errors (not liked), 404 for not found
+    status_code = 404 if "not found" in result.get('error', '').lower() else 400
+    return jsonify(result), status_code
+
+
+@post_bp.route('/posts/<int:post_id>/likes', methods=['GET'])
+@token_required
+def get_post_likes(post_id):
+    """Get users who liked a post"""
+    result = post_service.get_post_likes(post_id)
+    
+    if result['success']:
+        return jsonify(result), 200
+    return jsonify(result), 404

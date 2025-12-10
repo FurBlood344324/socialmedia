@@ -6,6 +6,7 @@
 -- ============================================
 DROP TABLE IF EXISTS Messages CASCADE;
 DROP TABLE IF EXISTS Comments CASCADE;
+DROP TABLE IF EXISTS PostLikes CASCADE;
 DROP TABLE IF EXISTS Posts CASCADE;
 DROP TABLE IF EXISTS CommunityMembers CASCADE;
 DROP TABLE IF EXISTS Communities CASCADE;
@@ -108,6 +109,14 @@ CREATE TABLE Comments (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Post likes table
+CREATE TABLE PostLikes (
+    post_id INT REFERENCES Posts(post_id) ON DELETE CASCADE,
+    user_id INT REFERENCES Users(user_id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (post_id, user_id)
+);
+
 -- Messages table
 CREATE TABLE Messages (
     message_id SERIAL PRIMARY KEY,
@@ -159,6 +168,10 @@ CREATE INDEX IF NOT EXISTS idx_posts_created_at ON Posts(created_at DESC);
 -- Index on comments
 CREATE INDEX IF NOT EXISTS idx_comments_post_id ON Comments(post_id);
 CREATE INDEX IF NOT EXISTS idx_comments_user_id ON Comments(user_id);
+
+-- Index on post likes
+CREATE INDEX IF NOT EXISTS idx_postlikes_post_id ON PostLikes(post_id);
+CREATE INDEX IF NOT EXISTS idx_postlikes_user_id ON PostLikes(user_id);
 
 -- Index on follows
 CREATE INDEX IF NOT EXISTS idx_follows_follower_id ON Follows(follower_id);
