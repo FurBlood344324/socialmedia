@@ -16,3 +16,6 @@ class Config:
     # SQLAlchemy configuration
     SQLALCHEMY_DATABASE_URI = f"postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_NAME}"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # CORS Configuration
+    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173').split(',')
