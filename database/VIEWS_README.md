@@ -5,6 +5,7 @@ This document describes the database views implemented for frequently used compl
 ## Overview
 
 The application uses PostgreSQL views to simplify and optimize:
+
 1. **User feeds** - Personalized post feeds from followed users
 2. **Popular content** - Trending posts based on engagement
 3. **User activity** - Track active users and their engagement
@@ -17,12 +18,14 @@ The application uses PostgreSQL views to simplify and optimize:
 **Purpose**: Get personalized feed of posts from users that the viewing user follows.
 
 **Key Features**:
+
 - Shows posts only from accepted follows
 - Includes engagement metrics (like count, comment count)
 - Pre-joined with user and community data
 - Optimized with indexes on Follows table
 
 **Columns**:
+
 - `post_id` - Post identifier
 - `user_id` - Post author ID
 - `username` - Post author username
@@ -38,20 +41,22 @@ The application uses PostgreSQL views to simplify and optimize:
 - `viewing_user_id` - The user whose feed this is (follower_id)
 
 **Example Usage**:
+
 ```sql
 -- Get feed for user with ID 1
-SELECT * FROM user_feed_view 
-WHERE viewing_user_id = 1 
-ORDER BY created_at DESC 
+SELECT * FROM user_feed_view
+WHERE viewing_user_id = 1
+ORDER BY created_at DESC
 LIMIT 20;
 
 -- Get feed with posts that have comments
-SELECT * FROM user_feed_view 
+SELECT * FROM user_feed_view
 WHERE viewing_user_id = 1 AND comment_count > 0
 ORDER BY created_at DESC;
 ```
 
 **Performance Notes**:
+
 - Indexes created on `Follows(follower_id, status_id)` and `Follows(following_id, status_id)`
 - Pre-aggregated like and comment counts
 - Use `LIMIT` to restrict results for pagination
@@ -63,12 +68,14 @@ ORDER BY created_at DESC;
 **Purpose**: Show trending/popular posts ordered by engagement score.
 
 **Key Features**:
+
 - Weighted engagement score (likes + comments × 2)
 - Recency indicator for posts from last 7 days
 - Includes all engagement metrics
 - Useful for "Discover" or "Trending" pages
 
 **Columns**:
+
 - `post_id` - Post identifier
 - `user_id` - Post author ID
 - `username` - Post author username
@@ -85,32 +92,35 @@ ORDER BY created_at DESC;
 - `is_recent` - Boolean: post from last 7 days
 
 **Example Usage**:
+
 ```sql
 -- Get top 20 most popular posts
-SELECT * FROM popular_posts_view 
+SELECT * FROM popular_posts_view
 LIMIT 20;
 
 -- Get popular recent posts only
-SELECT * FROM popular_posts_view 
-WHERE is_recent = true 
+SELECT * FROM popular_posts_view
+WHERE is_recent = true
 LIMIT 20;
 
 -- Get highly engaged posts (10+ likes OR 5+ comments)
-SELECT * FROM popular_posts_view 
+SELECT * FROM popular_posts_view
 WHERE like_count >= 10 OR comment_count >= 5
 ORDER BY engagement_score DESC
 LIMIT 20;
 
 -- Get popular posts from a specific community
-SELECT * FROM popular_posts_view 
-WHERE community_id = 5 
+SELECT * FROM popular_posts_view
+WHERE community_id = 5
 LIMIT 20;
 ```
 
 **Engagement Score Formula**:
+
 ```
 engagement_score = like_count + (comment_count × 2)
 ```
+
 Comments are weighted 2x because they represent deeper engagement.
 
 ---
@@ -120,6 +130,7 @@ Comments are weighted 2x because they represent deeper engagement.
 **Purpose**: Track users who have been active in the last 7 days.
 
 **Key Features**:
+
 - Activity includes: posts, likes, comments
 - Separate counters for each activity type
 - Total activity score
@@ -127,6 +138,7 @@ Comments are weighted 2x because they represent deeper engagement.
 - Only shows users with activity > 0
 
 **Columns**:
+
 - `user_id` - User identifier
 - `username` - Username
 - `email` - User email
@@ -140,30 +152,32 @@ Comments are weighted 2x because they represent deeper engagement.
 - `last_activity_at` - Most recent activity timestamp
 
 **Example Usage**:
+
 ```sql
 -- Get all active users
 SELECT * FROM active_users_view
 ORDER BY total_activity DESC;
 
 -- Get top 10 most active users
-SELECT * FROM active_users_view 
+SELECT * FROM active_users_view
 LIMIT 10;
 
 -- Get users who posted at least 5 times
-SELECT * FROM active_users_view 
+SELECT * FROM active_users_view
 WHERE posts_last_7_days >= 5;
 
 -- Get users active today
-SELECT * FROM active_users_view 
+SELECT * FROM active_users_view
 WHERE last_activity_at > CURRENT_DATE;
 
 -- Get posting-focused users
-SELECT * FROM active_users_view 
+SELECT * FROM active_users_view
 WHERE posts_last_7_days > likes_last_7_days
 ORDER BY posts_last_7_days DESC;
 ```
 
 **Activity Score Calculation**:
+
 ```
 total_activity = posts_last_7_days + likes_last_7_days + comments_last_7_days
 ```
@@ -175,6 +189,7 @@ total_activity = posts_last_7_days + likes_last_7_days + comments_last_7_days
 **Purpose**: Comprehensive analytics for all communities.
 
 **Key Features**:
+
 - Member counts by role (admin, moderator, member)
 - Post counts (total, last 7 days, last 30 days)
 - Engagement metrics (likes, comments, averages)
@@ -182,6 +197,7 @@ total_activity = posts_last_7_days + likes_last_7_days + comments_last_7_days
 - Last post timestamp
 
 **Columns**:
+
 - `community_id` - Community identifier
 - `community_name` - Community name
 - `description` - Community description
@@ -203,37 +219,39 @@ total_activity = posts_last_7_days + likes_last_7_days + comments_last_7_days
 - `last_post_at` - Timestamp of most recent post
 
 **Activity Level Classification**:
+
 - **active**: Has posts in last 7 days
 - **moderate**: Has posts in last 30 days (but not last 7)
 - **inactive**: No posts in last 30 days
 
 **Example Usage**:
+
 ```sql
 -- Get all community statistics
 SELECT * FROM community_statistics_view;
 
 -- Get top 10 communities by members
-SELECT * FROM community_statistics_view 
-ORDER BY total_members DESC 
+SELECT * FROM community_statistics_view
+ORDER BY total_members DESC
 LIMIT 10;
 
 -- Get only active communities
-SELECT * FROM community_statistics_view 
+SELECT * FROM community_statistics_view
 WHERE activity_level = 'active'
 ORDER BY posts_last_7_days DESC;
 
 -- Get communities with high engagement
-SELECT * FROM community_statistics_view 
+SELECT * FROM community_statistics_view
 WHERE avg_likes_per_post > 10
 ORDER BY avg_likes_per_post DESC;
 
 -- Get growing communities (many recent posts)
-SELECT * FROM community_statistics_view 
+SELECT * FROM community_statistics_view
 WHERE posts_last_7_days > 5
 ORDER BY posts_last_7_days DESC;
 
 -- Community health report
-SELECT 
+SELECT
     community_name,
     total_members,
     posts_last_7_days,
@@ -273,17 +291,20 @@ psql -U your_user -d your_database -f test_views.sql
 ## Performance Considerations
 
 ### Indexes Created
+
 - `idx_follows_follower_status` on Follows(follower_id, status_id)
 - `idx_follows_following_status` on Follows(following_id, status_id)
 
 ### Optimization Tips
 
 1. **Use LIMIT for pagination**:
+
 ```sql
 SELECT * FROM popular_posts_view LIMIT 20 OFFSET 0;
 ```
 
 2. **Filter early in queries**:
+
 ```sql
 -- Good: Filter on indexed columns first
 SELECT * FROM user_feed_view WHERE viewing_user_id = 1 LIMIT 20;
@@ -293,7 +314,8 @@ SELECT * FROM user_feed_view WHERE content LIKE '%search%';
 ```
 
 3. **Materialized Views for Heavy Queries**:
-If `community_statistics_view` becomes slow with many communities:
+   If `community_statistics_view` becomes slow with many communities:
+
 ```sql
 CREATE MATERIALIZED VIEW community_statistics_materialized AS
 SELECT * FROM community_statistics_view;
@@ -303,11 +325,12 @@ REFRESH MATERIALIZED VIEW community_statistics_materialized;
 ```
 
 4. **Add WHERE clauses before ordering**:
+
 ```sql
 -- More efficient
-SELECT * FROM popular_posts_view 
-WHERE is_recent = true 
-ORDER BY engagement_score DESC 
+SELECT * FROM popular_posts_view
+WHERE is_recent = true
+ORDER BY engagement_score DESC
 LIMIT 10;
 ```
 
@@ -334,8 +357,8 @@ DROP VIEW IF EXISTS community_statistics_view CASCADE;
 
 ```sql
 -- List all views
-SELECT table_name 
-FROM information_schema.views 
+SELECT table_name
+FROM information_schema.views
 WHERE table_schema = 'public';
 
 -- Get view definition
@@ -353,7 +376,7 @@ from api.extensions import db
 # Get user feed
 def get_user_feed(user_id, limit=20, offset=0):
     query = text("""
-        SELECT * FROM user_feed_view 
+        SELECT * FROM user_feed_view
         WHERE viewing_user_id = :user_id
         ORDER BY created_at DESC
         LIMIT :limit OFFSET :offset
@@ -368,7 +391,7 @@ def get_user_feed(user_id, limit=20, offset=0):
 # Get popular posts
 def get_popular_posts(limit=20):
     query = text("""
-        SELECT * FROM popular_posts_view 
+        SELECT * FROM popular_posts_view
         WHERE is_recent = true
         LIMIT :limit
     """)
@@ -385,7 +408,7 @@ def get_active_users(limit=10):
 def get_community_statistics(community_id=None):
     if community_id:
         query = text("""
-            SELECT * FROM community_statistics_view 
+            SELECT * FROM community_statistics_view
             WHERE community_id = :community_id
         """)
         result = db.session.execute(query, {"community_id": community_id})
@@ -443,6 +466,7 @@ DROP VIEW user_feed_view CASCADE;
 ## Future Enhancements
 
 Potential additions:
+
 - [ ] Materialized view for community_statistics_view
 - [ ] View for user recommendations based on interests
 - [ ] View for trending hashtags/topics

@@ -5,6 +5,7 @@ This document describes the database triggers implemented for automatic operatio
 ## Overview
 
 The application uses PostgreSQL triggers to automate:
+
 1. **Timestamp management** - Auto-update `updated_at` columns
 2. **Audit logging** - Track user deletions for compliance
 3. **Cascade cleanup** - Clean up related data when posts are deleted
@@ -16,11 +17,13 @@ The application uses PostgreSQL triggers to automate:
 **Purpose**: Automatically update the `updated_at` timestamp whenever a record is modified.
 
 **Tables Affected**:
+
 - `Users`
 - `Posts`
 - `Comments`
 
 **Trigger Function**:
+
 ```sql
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -32,11 +35,13 @@ $$ LANGUAGE plpgsql;
 ```
 
 **Triggers**:
+
 - `update_users_updated_at` - BEFORE UPDATE on Users
 - `update_posts_updated_at` - BEFORE UPDATE on Posts
 - `update_comments_updated_at` - BEFORE UPDATE on Comments
 
 **Example**:
+
 ```sql
 -- Update a user
 UPDATE Users SET bio = 'New bio' WHERE user_id = 1;
@@ -48,6 +53,7 @@ UPDATE Users SET bio = 'New bio' WHERE user_id = 1;
 **Purpose**: Log deletions for compliance, auditing, and potential data recovery.
 
 **Audit Log Table Structure**:
+
 ```sql
 CREATE TABLE AuditLog (
     audit_id SERIAL PRIMARY KEY,
@@ -64,6 +70,7 @@ CREATE TABLE AuditLog (
 ```
 
 **Trigger Function**:
+
 ```sql
 CREATE OR REPLACE FUNCTION log_user_deletion()
 RETURNS TRIGGER AS $$
@@ -97,9 +104,11 @@ $$ LANGUAGE plpgsql;
 ```
 
 **Triggers**:
+
 - `audit_user_deletion` - BEFORE DELETE on Users
 
 **Example**:
+
 ```sql
 -- Delete a user
 DELETE FROM Users WHERE user_id = 123;
@@ -107,6 +116,7 @@ DELETE FROM Users WHERE user_id = 123;
 ```
 
 **Querying Audit Logs**:
+
 ```sql
 -- View all user deletions
 SELECT * FROM AuditLog WHERE table_name = 'Users' ORDER BY deleted_at DESC;
@@ -115,12 +125,12 @@ SELECT * FROM AuditLog WHERE table_name = 'Users' ORDER BY deleted_at DESC;
 SELECT * FROM AuditLog WHERE user_id = 123;
 
 -- Extract data from JSONB
-SELECT 
+SELECT
     username,
     record_data->>'email' AS email,
     record_data->>'bio' AS bio,
     deleted_at
-FROM AuditLog 
+FROM AuditLog
 WHERE table_name = 'Users';
 ```
 
@@ -131,6 +141,7 @@ WHERE table_name = 'Users';
 **Note**: While PostgreSQL's `ON DELETE CASCADE` handles foreign key relationships, these triggers provide additional control and logging.
 
 **Trigger Functions**:
+
 ```sql
 -- Cleanup post likes
 CREATE OR REPLACE FUNCTION cleanup_post_likes()
@@ -154,10 +165,12 @@ $$ LANGUAGE plpgsql;
 ```
 
 **Triggers**:
+
 - `cleanup_likes_on_post_delete` - BEFORE DELETE on Posts
 - `cleanup_comments_on_post_delete` - BEFORE DELETE on Posts
 
 **Example**:
+
 ```sql
 -- Delete a post
 DELETE FROM Posts WHERE post_id = 456;
@@ -215,7 +228,7 @@ python -m pytest tests/test_triggers.py -v
 
 ```sql
 -- List all triggers in the database
-SELECT 
+SELECT
     trigger_name,
     event_object_table AS table_name,
     action_timing AS timing,
@@ -226,8 +239,9 @@ ORDER BY event_object_table, trigger_name;
 ```
 
 Expected output:
+
 ```
-       trigger_name        | table_name |  timing  | event  
+       trigger_name        | table_name |  timing  | event
 ---------------------------+------------+----------+--------
  cleanup_comments_on_...   | posts      | BEFORE   | DELETE
  cleanup_likes_on_post...  | posts      | BEFORE   | DELETE
@@ -240,11 +254,13 @@ Expected output:
 ## Trigger Execution Order
 
 When multiple triggers exist on the same table and event:
+
 1. Triggers execute in **alphabetical order by name**
 2. BEFORE triggers execute before the operation
 3. AFTER triggers execute after the operation
 
 Example for DELETE on Posts:
+
 1. `cleanup_comments_on_post_delete` (BEFORE DELETE)
 2. `cleanup_likes_on_post_delete` (BEFORE DELETE)
 3. Actual DELETE operation
@@ -257,6 +273,7 @@ Example for DELETE on Posts:
 3. **Cascade cleanup triggers**: Can be expensive for posts with many likes/comments
 
 **Optimization tips**:
+
 - Ensure indexes exist on foreign keys (`post_id`, `user_id`)
 - Consider batch operations for bulk deletions
 - Monitor audit log table size and archive old records
@@ -293,7 +310,7 @@ DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
 DELETE FROM AuditLog WHERE deleted_at < NOW() - INTERVAL '1 year';
 
 -- Or move to archive table
-INSERT INTO AuditLog_Archive 
+INSERT INTO AuditLog_Archive
 SELECT * FROM AuditLog WHERE deleted_at < NOW() - INTERVAL '1 year';
 
 DELETE FROM AuditLog WHERE deleted_at < NOW() - INTERVAL '1 year';
@@ -304,14 +321,17 @@ DELETE FROM AuditLog WHERE deleted_at < NOW() - INTERVAL '1 year';
 ### Key Concepts Demonstrated
 
 1. **BEFORE vs AFTER Triggers**
+
    - BEFORE: Can modify NEW values, prevent operation
    - AFTER: Cannot modify values, used for logging
 
 2. **NEW and OLD Keywords**
+
    - NEW: Contains new values (INSERT, UPDATE)
    - OLD: Contains old values (UPDATE, DELETE)
 
 3. **Trigger Functions**
+
    - Must return a trigger type
    - Can access TG_OP, TG_TABLE_NAME
    - Use RETURN NEW/OLD/NULL
@@ -356,6 +376,7 @@ SELECT pg_size_pretty(pg_total_relation_size('AuditLog'));
 ## Future Enhancements
 
 Potential additions:
+
 - [ ] Denormalized counters with triggers (like_count, comment_count in Posts table)
 - [ ] Audit logging for Posts and Comments
 - [ ] Soft delete triggers (mark as deleted instead of actual deletion)
