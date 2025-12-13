@@ -1,6 +1,226 @@
 # 🌐 Social Media Project
 
-Flask ve PostgreSQL tabanlı bir sosyal medya uygulaması backend projesi.
+Flask (Backend) ve Next.js (Frontend) teknolojileri kullanılarak geliştirilmiş, PostgreSQL veritabanı altyapısına sahip modern bir sosyal medya uygulamasıdır.
+
+Bu proje, kullanıcıların profil oluşturması, gönderi paylaşması, yorum yapması, topluluklara katılması ve diğer kullanıcılarla etkileşime girmesi için gerekli temel özellikleri sağlar.
+
+---
+
+## 🚀 Kurulum Rehberi
+
+Bu projeyi yerel bilgisayarınızda çalıştırmak için aşağıdaki adımları sırasıyla takip edin.
+
+### 📋 Gereksinimler
+
+Kuruluma başlamadan önce aşağıdaki araçların bilgisayarınızda yüklü olduğundan emin olun:
+
+-   **Git**: Projeyi indirmek için.
+-   **Python 3.11+**: Backend için.
+-   **Node.js 18+ & npm**: Frontend için.
+-   **PostgreSQL 14+**: Veritabanı için.
+
+---
+
+### 1. Adım: Projeyi Bilgisayarınıza İndirin
+
+Terminal veya komut istemcisini açın ve projeyi klonlayın:
+
+```bash
+git clone <repo-url>
+cd SocialMediaProject
+```
+
+---
+
+### 2. Adım: Python Ortamının Kurulumu (Backend)
+
+**⚠️ ÖNEMLİ NOT:** Backend ile ilgili tüm kurulum ve çalıştırma işlemleri `backend` klasörü altında yapılmalıdır.
+
+İşletim sisteminize uygun adımları takip edin:
+
+#### 🐧 Linux ve 🍎 macOS Kullanıcıları (pyenv ile)
+
+Bu projede Python sürüm yönetimi için **pyenv** kullanılması önerilir.
+
+1.  Backend klasörüne gidin:
+    ```bash
+    cd backend
+    ```
+
+2.  Python 3.11.14 sürümünü yükleyin (Eğer yüklü değilse):
+    ```bash
+    pyenv install 3.11.14
+    ```
+
+3.  `socialmedia-env` adında bir sanal ortam oluşturun:
+    ```bash
+    pyenv virtualenv 3.11.14 socialmedia-env
+    ```
+
+4.  Bu klasör için yerel olarak bu ortamı tanımlayın:
+    ```bash
+    pyenv local socialmedia-env
+    ```
+    *(Artık bu klasöre her girdiğinizde `socialmedia-env` otomatik aktif olacaktır.)*
+
+5.  Gerekli kütüphaneleri yükleyin:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+#### 🪟 Windows Kullanıcıları (venv ile)
+
+Windows kullanıcıları için standart `venv` modülü kullanılacaktır.
+
+1.  Backend klasörüne gidin:
+    ```bash
+    cd backend
+    ```
+
+2.  Sanal ortam oluşturun:
+    ```powershell
+    python -m venv venv
+    ```
+
+3.  Sanal ortamı aktifleştirin:
+    *   **PowerShell:**
+        ```powershell
+        .\venv\Scripts\Activate.ps1
+        ```
+    *   **CMD:**
+        ```cmd
+        .\venv\Scripts\activate.bat
+        ```
+
+4.  Gerekli kütüphaneleri yükleyin:
+    ```powershell
+    pip install -r requirements.txt
+    ```
+
+---
+
+### 3. Adım: Veritabanı Kurulumu
+
+PostgreSQL servinizin çalıştığından emin olun ve bir veritabanı oluşturun.
+
+1.  Veritabanını ve kullanıcıyı oluşturun (psql veya pgAdmin kullanabilirsiniz):
+
+    ```sql
+    CREATE DATABASE social_media_db;
+    CREATE USER your_user WITH PASSWORD 'your_password';
+    GRANT ALL PRIVILEGES ON DATABASE social_media_db TO your_user;
+    -- Şema yetkileri için (gerekirse):
+    GRANT ALL ON SCHEMA public TO your_user;
+    ```
+
+2.  **Environment Dosyasını Hazırlayın:**
+
+    `backend` klasörü içerisindeyken `.env.example` dosyasını kopyalayarak `.env` dosyası oluşturun:
+
+    ```bash
+    # Linux/Mac
+    cp .env.example .env
+
+    # Windows
+    copy .env.example .env
+    ```
+
+    `.env` dosyasını bir metin editörü ile açın ve veritabanı bilgilerinizi girin:
+
+    ```env
+    DATABASE_HOST=localhost
+    DATABASE_PORT=5432
+    DATABASE_NAME=social_media_db
+    DATABASE_USER=your_user      # Oluşturduğunuz kullanıcı adı
+    DATABASE_PASSWORD=your_password # Oluşturduğunuz şifre
+    SECRET_KEY=your-super-secret-key
+    JWT_SECRET_KEY=your-jwt-secret-key
+    ```
+
+> **Not:** Veritabanı tabloları, uygulama ilk kez çalıştırıldığında otomatik olarak oluşturulacaktır (`init.sql` kullanılır). Sizin manuel olarak tablo oluşturmanıza gerek yoktur.
+
+---
+
+### 4. Adım: Projeyi Başlatma
+
+#### Backend'i Başlatma
+
+Backend sunucusu API isteklerini karşılar.
+
+1.  `backend` klasöründe olduğunuza ve sanal ortamın aktif olduğuna emin olun (`(socialmedia-env)` veya `(venv)` ibaresini görmelisiniz).
+
+    ```bash
+    # Eğer root dizindeyseniz:
+    cd backend
+    ```
+
+2.  Uygulamayı başlatın:
+    ```bash
+    python app.py
+    ```
+
+    Sunucu `http://localhost:5000` adresinde çalışmaya başlayacaktır.
+
+#### 🐍 Kullanılabilir Komutlar (Backend)
+
+**⚠️ ÖNEMLİ:** Bu komutların hepsi `backend` klasörü altında çalıştırılmalıdır.
+
+| Komut | Açıklama |
+|-------|----------|
+| `python app.py` | Backend sunucusunu başlatır. |
+| `python reset_db.py` | Veritabanını sıfırlar ve `init.sql` ile yeniden oluşturur. (Dikkat: Tüm veriler silinir!) |
+| `python run_all_tests.py` | Backend testlerini çalıştırır. |
+
+#### Frontend'i Başlatma
+
+Kullanıcı arayüzünü başlatmak için yeni bir terminal penceresi açın.
+
+1.  `frontend` klasörüne gidin:
+    ```bash
+    cd frontend
+    ```
+
+2.  Paketleri yükleyin (İlk kurulumda):
+    ```bash
+    npm install
+    ```
+
+3.  **Environment Dosyasını Hazırlayın:**
+
+    `frontend` klasörü içerisindeyken `.env.example` dosyasını kopyalayarak `.env` dosyası oluşturun:
+    
+    ```bash
+    # Linux/Mac
+    cp .env.example .env
+
+    # Windows
+    copy .env.example .env
+    ```
+
+    Dosya içeriğini kontrol edin (Varsayılan olarak `http://localhost:5000` ayarlıdır):
+    
+    ```env
+    NEXT_PUBLIC_API_URL=http://localhost:5000
+    ```
+
+4.  Geliştirme sunucusunu başlatın:
+    ```bash
+    npm run dev
+    ```
+
+    Frontend uygulaması genellikle `http://localhost:3000` adresinde yayına başlar.
+
+#### 📜 Kullanılabilir Komutlar (Frontend)
+
+`frontend` klasörü içerisindeyken aşağıdaki komutları kullanabilirsiniz:
+
+| Komut | Açıklama |
+|-------|----------|
+| `npm run dev` | Geliştirme sunucusunu başlatır (Hot Reload aktif). |
+| `npm run build` | Uygulamayı prodüksiyon için derler. |
+| `npm run start` | Derlenmiş uygulamayı başlatır. |
+| `npm run lint` | Kod hatalarını kontrol eder (ESLint). |
+| `npm run format` | Kodu otomatik olarak düzenler (Prettier). |
 
 ---
 
@@ -8,320 +228,17 @@ Flask ve PostgreSQL tabanlı bir sosyal medya uygulaması backend projesi.
 
 ```
 SocialMediaProject/
-├── backend/                    # Flask Backend Uygulaması
-│   ├── api/
-│   │   ├── controllers/        # API endpoint'leri (route tanımlamaları)
-│   │   │   ├── api.py          # Ana blueprint - tüm controller'ları birleştirir
-│   │   │   ├── user_controller.py
-│   │   │   ├── post_controller.py
-│   │   │   ├── comment_controller.py
-│   │   │   ├── community_controller.py
-│   │   │   ├── follow_controller.py
-│   │   │   └── message_controller.py
-│   │   │
-│   │   ├── services/           # İş mantığı katmanı
-│   │   │   ├── auth_service.py
-│   │   │   ├── user_service.py
-│   │   │   ├── post_service.py
-│   │   │   ├── comment_service.py
-│   │   │   ├── community_service.py
-│   │   │   ├── follow_service.py
-│   │   │   └── message_service.py
-│   │   │
-│   │   ├── repositories/       # Veritabanı işlemleri (CRUD)
-│   │   │   ├── user_repository.py
-│   │   │   ├── post_repository.py
-│   │   │   ├── comment_repository.py
-│   │   │   ├── community_repository.py
-│   │   │   ├── follow_repository.py
-│   │   │   └── message_repository.py
-│   │   │
-│   │   ├── entities/           # SQLAlchemy Model tanımlamaları
-│   │   │   └── entities.py
-│   │   │
-│   │   ├── middleware/         # Ara yazılımlar
-│   │   │   ├── jwt.py          # JWT token doğrulama
-│   │   │   └── authorization.py # Yetkilendirme kontrolü
-│   │   │
-│   │   ├── permissions/        # Yetki tanımlamaları
-│   │   │   └── permissions.py
-│   │   │
-│   │   ├── __init__.py         # Flask app factory
-│   │   ├── config.py           # Uygulama konfigürasyonu
-│   │   ├── extensions.py       # Flask extension'ları (SQLAlchemy vb.)
-│   │   └── utils.py            # Yardımcı fonksiyonlar
-│   │
-│   ├── app.py                  # Uygulama giriş noktası
-│   ├── requirements.txt        # Python bağımlılıkları
-│   ├── .env.example            # Örnek environment dosyası
-│   ├── .gitignore
-│   └── .python-version         # Pyenv versiyon dosyası
-│
-├── database/                   # Veritabanı dosyaları
-│   ├── 01_Tables/              # Tablo oluşturma SQL'leri
-│   │   ├── users.sql
-│   │   ├── posts.sql
-│   │   ├── comments.sql
-│   │   ├── communities.sql
-│   │   ├── community_members.sql
-│   │   ├── follow.sql
-│   │   ├── follow_status.sql
-│   │   ├── messages.sql
-│   │   ├── privacy_types.sql
-│   │   └── roles.sql
-│   ├── 02_Views/               # View tanımlamaları
-│   ├── 03_Functions/           # Stored procedure ve function'lar
-│   └── Queries/                # Örnek sorgular
-│
-└── frontend/                   # Frontend uygulaması (henüz geliştirilmedi)
+├── backend/           # Python/Flask Backend (Tüm backend işlemleri burada)
+│   ├── api/           # API Controller, Service, Repository katmanları
+│   ├── app.py         # Backend giriş noktası
+│   └── ...
+├── database/          # SQL şemaları ve seed verileri
+└── frontend/          # Next.js Frontend uygulaması
 ```
 
 ---
 
-## 🏗️ Mimari Yapı
+## 🛠️ Geliştirici Notları
 
-Proje **Layered Architecture** (Katmanlı Mimari) kullanmaktadır:
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Controllers                          │
-│              (HTTP Request/Response)                    │
-├─────────────────────────────────────────────────────────┤
-│                     Services                            │
-│                 (Business Logic)                        │
-├─────────────────────────────────────────────────────────┤
-│                   Repositories                          │
-│               (Data Access Layer)                       │
-├─────────────────────────────────────────────────────────┤
-│                     Entities                            │
-│              (SQLAlchemy Models)                        │
-├─────────────────────────────────────────────────────────┤
-│                    PostgreSQL                           │
-│                    (Database)                           │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-## 🚀 Kurulum
-
-### Gereksinimler
-
-- Python 3.11+
-- PostgreSQL 14+
-- pyenv (önerilen)
-- Git
-
-### 1. Projeyi Klonlayın
-
-```bash
-git clone <repo-url>
-cd SocialMediaProject
-```
-
-### 2. Python Ortamını Kurun
-
-#### Linux / macOS
-
-```bash
-# pyenv kurulumu (eğer yüklü değilse)
-# Linux (Ubuntu/Debian)
-curl https://pyenv.run | bash
-
-# macOS (Homebrew ile)
-brew install pyenv pyenv-virtualenv
-
-# Shell konfigürasyonu (~/.bashrc veya ~/.zshrc dosyasına ekleyin)
-echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.zshrc
-echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc
-echo 'eval "$(pyenv init -)"' >> ~/.zshrc
-echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.zshrc
-
-# Shell'i yeniden başlatın
-source ~/.zshrc
-
-# Python 3.11 kurulumu
-pyenv install 3.11.14
-
-# Virtual environment oluşturma
-pyenv virtualenv 3.11.14 socialmedia-env
-
-# Proje dizinine gidin ve ortamı aktifleştirin
-cd backend
-pyenv local socialmedia-env
-```
-
-#### Windows
-
-```powershell
-# Python 3.11+ indirin ve kurun: https://www.python.org/downloads/
-
-# Virtual environment oluşturma
-cd backend
-python -m venv venv
-
-# Ortamı aktifleştirme (PowerShell)
-.\venv\Scripts\Activate.ps1
-
-# Veya (CMD)
-.\venv\Scripts\activate.bat
-```
-
-### 3. Bağımlılıkları Yükleyin
-
-```bash
-cd backend
-pip install -r requirements.txt
-```
-
-### 4. PostgreSQL Veritabanını Kurun
-
-#### Linux (Ubuntu/Debian)
-
-```bash
-# PostgreSQL kurulumu
-sudo apt update
-sudo apt install postgresql postgresql-contrib
-
-# PostgreSQL servisini başlatın
-sudo systemctl start postgresql
-sudo systemctl enable postgresql
-
-# Veritabanı oluşturma
-sudo -u postgres psql -c "CREATE DATABASE social_media_db;"
-sudo -u postgres psql -c "CREATE USER your_user WITH PASSWORD 'your_password';"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE social_media_db TO your_user;"
-```
-
-#### macOS
-
-```bash
-# Homebrew ile kurulum
-brew install postgresql@14
-brew services start postgresql@14
-
-# Veritabanı oluşturma
-createdb social_media_db
-psql -d social_media_db -c "CREATE USER your_user WITH PASSWORD 'your_password';"
-psql -d social_media_db -c "GRANT ALL PRIVILEGES ON DATABASE social_media_db TO your_user;"
-```
-
-#### Windows
-
-1. [PostgreSQL](https://www.postgresql.org/download/windows/) indirin ve kurun
-2. pgAdmin veya psql ile veritabanı oluşturun:
-
-```sql
-CREATE DATABASE social_media_db;
-CREATE USER your_user WITH PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE social_media_db TO your_user;
-```
-
-### 5. Tabloları Oluşturun
-
-```bash
-# database klasöründeki SQL dosyalarını sırasıyla çalıştırın
-cd database/01_Tables
-
-# Linux/macOS
-psql -U your_user -d social_media_db -f roles.sql
-psql -U your_user -d social_media_db -f privacy_types.sql
-psql -U your_user -d social_media_db -f follow_status.sql
-psql -U your_user -d social_media_db -f users.sql
-psql -U your_user -d social_media_db -f posts.sql
-psql -U your_user -d social_media_db -f comments.sql
-psql -U your_user -d social_media_db -f communities.sql
-psql -U your_user -d social_media_db -f community_members.sql
-psql -U your_user -d social_media_db -f follow.sql
-psql -U your_user -d social_media_db -f messages.sql
-```
-
-### 6. Environment Değişkenlerini Ayarlayın
-
-```bash
-cd backend
-
-# .env.example dosyasını kopyalayın
-cp .env.example .env
-
-# .env dosyasını düzenleyin
-nano .env  # veya tercih ettiğiniz editör
-```
-
-`.env` dosyası içeriği:
-
-```env
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
-DATABASE_NAME=social_media_db
-DATABASE_USER=your_user
-DATABASE_PASSWORD=your_password
-SECRET_KEY=your-super-secret-key
-JWT_SECRET_KEY=your-jwt-secret-key
-```
-
-### 7. Uygulamayı Çalıştırın
-
-```bash
-cd backend
-python app.py
-```
-
-Uygulama varsayılan olarak `http://localhost:5000` adresinde çalışacaktır.
-
----
-
-## 🔌 API Endpoints
-
-| Endpoint | Açıklama |
-|----------|----------|
-| `/api/users` | Kullanıcı işlemleri |
-| `/api/posts` | Gönderi işlemleri |
-| `/api/comments` | Yorum işlemleri |
-| `/api/communities` | Topluluk işlemleri |
-| `/api/follow` | Takip işlemleri |
-| `/api/messages` | Mesaj işlemleri |
-
----
-
-## 🧪 Test
-
-```bash
-# Uygulamanın çalıştığını kontrol edin
-python -c "from api import create_app; app = create_app(); print('✅ App loaded successfully!')"
-```
-
----
-
-## 📝 Geliştirme Notları
-
-### Yeni Bir Endpoint Ekleme
-
-1. `entities/entities.py` - Model tanımla
-2. `repositories/` - Repository metodları ekle
-3. `services/` - İş mantığını yaz
-4. `controllers/` - API endpoint'ini tanımla
-5. `controllers/api.py` - Blueprint'i kaydet
-
-### Commit Mesajı Formatı
-
-```
-feat: Yeni özellik eklendi
-fix: Hata düzeltildi
-docs: Dokümantasyon güncellendi
-refactor: Kod yeniden düzenlendi
-```
-
----
-
-## 👥 Katkıda Bulunanlar
-
-- [İsim 1]
-- [İsim 2]
-- [İsim 3]
-
----
-
-## 📄 Lisans
-
-Bu proje MIT lisansı altında lisanslanmıştır.
+*   Backend'e yeni bir paket eklerseniz `pip freeze > requirements.txt` ile bağımlılık listesini güncellemeyi unutmayın.
+*   Veritabanı şemasında değişiklik yaparsanız `database` klasörünü güncel tutun.
