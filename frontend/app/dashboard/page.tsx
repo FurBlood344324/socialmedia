@@ -1,6 +1,7 @@
 "use client"
 
-import { Bell, MessageCircle, Settings, Users } from "lucide-react"
+import Link from "next/link"
+import { Bell, MessageCircle, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/lib/auth-context"
@@ -106,9 +107,11 @@ function DashboardPage() {
                   </div>
                 </div>
                 {user?.bio && <p className="text-muted-foreground text-sm">{user.bio}</p>}
-                <Button variant="outline" className="w-full bg-transparent" disabled>
-                  <Settings className="mr-2 h-4 w-4" />
-                  Edit Profile (Coming Soon)
+                <Button asChild variant="outline" className="w-full bg-transparent">
+                  <Link href={`/profile/${user?.username}`}>
+                    <Users className="mr-2 h-4 w-4" />
+                    View Profile
+                  </Link>
                 </Button>
               </CardContent>
             </Card>

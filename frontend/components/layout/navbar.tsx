@@ -34,10 +34,13 @@ export function Navbar() {
                 >
                   Dashboard
                 </Link>
-                <div className="bg-muted flex items-center gap-2 rounded-lg px-3 py-2">
+                <Link
+                  href={`/profile/${user?.username}`}
+                  className="bg-muted hover:bg-muted/80 flex items-center gap-2 rounded-lg px-3 py-2 transition-colors"
+                >
                   <User className="h-4 w-4" />
                   <span className="text-sm font-medium">{user?.username}</span>
-                </div>
+                </Link>
                 <Button onClick={logout} variant="outline" size="sm">
                   Logout
                 </Button>
@@ -74,10 +77,14 @@ export function Navbar() {
                 >
                   Dashboard
                 </Link>
-                <div className="bg-muted flex items-center gap-2 rounded-lg px-3 py-2">
+                <Link
+                  href={`/profile/${user?.username}`}
+                  className="bg-muted hover:bg-muted/80 flex items-center gap-2 rounded-lg px-3 py-2 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
                   <User className="h-4 w-4" />
                   <span className="text-sm font-medium">{user?.username}</span>
-                </div>
+                </Link>
                 <Button
                   onClick={() => {
                     logout()

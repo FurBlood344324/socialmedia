@@ -1,7 +1,10 @@
+"use client"
+
 import { RegisterForm } from "@/components/auth/register-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { withPublicAuth } from "@/lib/public-route"
 
-export default function RegisterPage() {
+function RegisterPage() {
   return (
     <div className="from-background via-muted/20 to-background flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
       <Card className="w-full max-w-md">
@@ -18,3 +21,5 @@ export default function RegisterPage() {
     </div>
   )
 }
+
+export default withPublicAuth(RegisterPage)

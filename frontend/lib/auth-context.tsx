@@ -10,6 +10,7 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<void>
   register: (data: RegisterData) => Promise<void>
   logout: () => void
+  refreshUser: () => Promise<void>
   isLoading: boolean
 }
 
@@ -17,17 +18,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("token")
-    }
-    return null
-  })
+  const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Verify token and load user if token exists
-    if (token) {
+    // Check for existing token on mount
+    const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null
+
+    if (storedToken) {
+      // eslint-disable-next-line
+      setToken(storedToken)
+      // Verify token and load user
       api
         .getCurrentUser()
         .then(setUser)
@@ -37,10 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
         .finally(() => setIsLoading(false))
     } else {
-      // Use setTimeout to avoid synchronous setState in effect
-      setTimeout(() => setIsLoading(false), 0)
+      setIsLoading(false)
     }
-  }, [token])
+  }, [])
 
   const login = async (username: string, password: string) => {
     const response = await api.login(username, password)
@@ -62,8 +62,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
+  const refreshUser = async () => {
+    const updatedUser = await api.getCurrentUser()
+    setUser(updatedUser)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, refreshUser, isLoading }}>
       {children}
     </AuthContext.Provider>
   )

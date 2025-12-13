@@ -37,6 +37,7 @@ export interface Post {
   created_at: string
   likes_count: number
   comments_count: number
+  user?: User
 }
 
 // TODO: Phase 2 - Add Comment types
@@ -46,6 +47,34 @@ export interface Comment {
   user_id: number
   content: string
   created_at: string
+}
+
+export interface FollowStats {
+  followers_count: number
+  following_count: number
+  posts_count: number
+}
+
+export interface FollowUser {
+  user_id: number
+  username: string
+  profile_picture_url?: string
+  bio?: string
+  is_following?: boolean
+}
+
+export interface ProfileData extends User {
+  stats: FollowStats
+  is_following?: boolean
+  is_own_profile: boolean
+}
+
+export interface UpdateProfileData {
+  username?: string
+  email?: string
+  bio?: string
+  profile_picture_url?: string
+  is_private?: boolean
 }
 
 // TODO: Phase 3 - Add Community types
