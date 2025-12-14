@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { ImageIcon, Loader2, Users } from "lucide-react"
+import { useRef, useState } from "react"
+import Image from "next/image"
+import { ImageIcon, Loader2, Users, X } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -24,6 +25,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showMediaInput, setShowMediaInput] = useState(false)
   const [showCommunityInput, setShowCommunityInput] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleSubmit = async () => {
     if (!content.trim() || isSubmitting) return
@@ -91,14 +93,62 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             {/* Media URL Input */}
             {showMediaInput && (
               <div className="animate-in fade-in slide-in-from-top-2 duration-200">
-                <input
-                  type="url"
-                  placeholder="Enter image URL..."
-                  value={mediaUrl}
-                  onChange={(e) => setMediaUrl(e.target.value)}
-                  className="border-border bg-background focus:border-primary focus:ring-primary w-full rounded-md border px-3 py-2 text-sm transition-colors focus:ring-1 focus:outline-none"
-                  disabled={isSubmitting}
-                />
+                <div className="flex flex-col gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isSubmitting}
+                  >
+                    <ImageIcon className="mr-2 h-4 w-4" />
+                    {mediaUrl ? "Change Image" : "Upload Image"}
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        try {
+                          const url = await api.uploadFile(file)
+                          setMediaUrl(url)
+                          toast({ title: "Image uploaded successfully" })
+                        } catch {
+                          toast({
+                            title: "Upload failed",
+                            description: "Failed to upload image",
+                            variant: "destructive",
+                          })
+                        }
+                      }
+                      // Reset value so same file can be selected again if needed
+                      e.target.value = ""
+                    }}
+                    disabled={isSubmitting}
+                  />
+                </div>
+                {mediaUrl && (
+                  <div className="relative mt-2 inline-block">
+                    <Image
+                      src={mediaUrl}
+                      alt="Preview"
+                      width={80}
+                      height={80}
+                      className="h-20 w-20 rounded-md object-cover"
+                      unoptimized
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setMediaUrl("")}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90 absolute -top-2 -right-2 rounded-full p-0.5"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

@@ -328,6 +328,7 @@ class PostRepository:
         
         posts_with_stats = []
         for row in result.fetchall():
+            post = Post.from_row(row)
             posts_with_stats.append({
                 **post.to_dict(),
                 'username': row.author_username,

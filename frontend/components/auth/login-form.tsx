@@ -32,7 +32,12 @@ export function LoginForm() {
       await login(formData.username, formData.password)
       router.push("/?success=login")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed. Please try again.")
+      const errorMessage = err instanceof Error ? err.message : "Login failed. Please try again."
+      if (errorMessage.includes("401")) {
+        setError("Invalid username or password")
+      } else {
+        setError(errorMessage)
+      }
     } finally {
       setIsLoading(false)
     }

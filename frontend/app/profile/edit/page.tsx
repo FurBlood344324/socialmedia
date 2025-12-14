@@ -3,7 +3,7 @@
 import type React from "react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, X } from "lucide-react"
+import { ImageIcon, Loader2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -99,25 +99,51 @@ export default function EditProfilePage() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="space-y-2">
-                  <Label htmlFor="profile_picture_url">Profile Picture URL</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="profile_picture_url"
-                      placeholder="https://example.com/image.jpg"
-                      value={formData.profile_picture_url}
-                      onChange={(e) =>
-                        setFormData({ ...formData, profile_picture_url: e.target.value })
-                      }
-                    />
+                  <div className="flex-1 space-y-2">
+                    <Label htmlFor="profile_picture_url">Profile Picture</Label>
+                    <div className="flex gap-2">
+                      <div className="relative w-full">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal"
+                          onClick={() => document.getElementById("file-upload")?.click()}
+                          disabled={isLoading}
+                        >
+                          <ImageIcon className="mr-2 h-4 w-4" />
+                          {formData.profile_picture_url ? "Change Picture" : "Upload Picture"}
+                        </Button>
+                        <Input
+                          id="file-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              try {
+                                setIsLoading(true)
+                                const url = await api.uploadFile(file)
+                                setFormData((prev) => ({ ...prev, profile_picture_url: url }))
+                                toast({ title: "Image uploaded successfully" })
+                              } catch {
+                                toast({
+                                  title: "Upload failed",
+                                  description: "Failed to upload image",
+                                  variant: "destructive",
+                                })
+                              } finally {
+                                setIsLoading(false)
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
                     {formData.profile_picture_url && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setFormData({ ...formData, profile_picture_url: "" })}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                      <p className="text-muted-foreground mt-1 truncate text-xs">
+                        File: {formData.profile_picture_url.split("/").pop()}
+                      </p>
                     )}
                   </div>
                 </div>

@@ -2,6 +2,7 @@
 # Python
 # =====================
 /__pycache__/
+backend/static/uploads/*.png
 *.py[cod]
 *$py.class
 *.so

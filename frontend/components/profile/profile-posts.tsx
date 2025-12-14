@@ -60,7 +60,13 @@ export function ProfilePosts({ posts, isPrivateAndNotFollowing }: ProfilePostsPr
           <CardContent className="p-6">
             <div className="flex items-start gap-3">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={post.user?.profile_picture_url || "/placeholder.svg"} />
+                <AvatarImage
+                  src={
+                    post.user_profile_picture ||
+                    post.user?.profile_picture_url ||
+                    "/placeholder-user.jpg"
+                  }
+                />
                 <AvatarFallback className="bg-primary text-primary-foreground">
                   {post.user?.username.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
@@ -86,6 +92,7 @@ export function ProfilePosts({ posts, isPrivateAndNotFollowing }: ProfilePostsPr
                     width={500}
                     height={300}
                     className="max-h-96 w-full rounded-lg object-cover"
+                    unoptimized={true}
                   />
                 )}
 

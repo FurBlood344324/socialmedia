@@ -176,6 +176,36 @@ class ApiClient {
   // TODO: Phase 3 - Communities API
   // async getCommunities(): Promise<Community[]> { }
   // async joinCommunity(communityId: number): Promise<void> { }
+  // File Upload
+  async uploadFile(file: File): Promise<string> {
+    const formData = new FormData()
+    formData.append("file", file)
+
+    const response = await fetch(`${API_BASE_URL}/api/upload/`, {
+      method: "POST",
+      body: formData,
+    })
+
+    // Handle specific error for upload
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: "An error occurred" }))
+      throw new Error(error.message || `HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return data.url
+  }
+
+  async generateAvatar(username: string): Promise<string> {
+    const response = await fetch(`${API_BASE_URL}/api/upload/generate-avatar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username }),
+    })
+
+    const data = await this.handleResponse<{ url: string }>(response)
+    return data.url
+  }
 }
 
 export const api = new ApiClient()

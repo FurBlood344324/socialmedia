@@ -21,6 +21,16 @@ class AuthService:
 
         password_hash = generate_password_hash(password)
 
+        # Auto-generate avatar if not provided
+        if not profile_picture_url:
+            try:
+                from api.utils.avatar_generator import generate_initial_avatar
+                profile_picture_url = generate_initial_avatar(username)
+            except Exception as e:
+                # Log error but don't fail registration
+                print(f"Failed to generate avatar: {e}")
+                profile_picture_url = None
+
         user = User(
             username=username,
             email=email,

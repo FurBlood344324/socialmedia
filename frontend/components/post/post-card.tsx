@@ -40,7 +40,6 @@ export function PostCard({ post, onLikeUpdate }: PostCardProps) {
       }
       onLikeUpdate?.(post.post_id, newLiked, newCount)
     } catch {
-      // Revert on error
       setIsLiked(!newLiked)
       setLikeCount(likeCount)
       toast({
@@ -118,6 +117,7 @@ export function PostCard({ post, onLikeUpdate }: PostCardProps) {
               height={400}
               className="h-auto w-full object-cover"
               priority={false}
+              unoptimized={true}
             />
           </div>
         )}

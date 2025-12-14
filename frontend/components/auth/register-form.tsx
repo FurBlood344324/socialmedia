@@ -9,11 +9,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { useAuth } from "@/lib/auth-context"
 
 export function RegisterForm() {
   const router = useRouter()
-  const { register } = useAuth()
+  // const { register } = useAuth() // Removed to avoid auto-login
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -24,7 +23,7 @@ export function RegisterForm() {
     password: "",
     confirmPassword: "",
     bio: "",
-    profile_picture_url: "",
+
     is_private: false,
   })
 
@@ -81,8 +80,21 @@ export function RegisterForm() {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { confirmPassword, ...registerData } = formData
-      await register(registerData)
-      router.push("/?success=register")
+
+      // Use API directly to avoid auto-login from AuthContext
+      const { api } = await import("@/lib/api")
+      await api.register(registerData)
+
+      // Auto-generate avatar
+      try {
+        await api.generateAvatar(registerData.username)
+      } catch (avatarError) {
+        console.error("Failed to generate avatar:", avatarError)
+        // Ensure we still redirect even if avatar generation fails,
+        // as the account was created successfully.
+      }
+
+      router.push("/login?success=register")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed. Please try again.")
     } finally {
@@ -202,18 +214,6 @@ export function RegisterForm() {
         <p className="text-muted-foreground text-right text-xs">
           {formData.bio.length}/500 characters
         </p>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="profile_picture_url">Profile Picture URL (Optional)</Label>
-        <Input
-          id="profile_picture_url"
-          type="url"
-          placeholder="https://example.com/avatar.jpg"
-          value={formData.profile_picture_url}
-          onChange={(e) => setFormData({ ...formData, profile_picture_url: e.target.value })}
-          disabled={isLoading}
-        />
       </div>
 
       <div className="border-border bg-muted/30 flex items-center space-x-2 rounded-lg border p-4">
