@@ -112,7 +112,7 @@ def get_discover_feed():
     limit = request.args.get('limit', 50, type=int)
     offset = request.args.get('offset', 0, type=int)
     
-    result = post_service.get_discover_feed(limit, offset)
+    result = post_service.get_discover_feed(request.user_id, limit, offset)
     return jsonify({"success": True, **result}), 200
 
 

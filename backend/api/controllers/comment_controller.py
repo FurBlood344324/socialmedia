@@ -96,3 +96,14 @@ def get_comment_replies(comment_id):
     if result.get('success', True):
         return jsonify(result), 200
     return jsonify(result), 404
+
+
+@comment_bp.route('/users/<int:user_id>/comments', methods=['GET'])
+@token_required
+def get_user_comments_with_posts(user_id):
+    """Get all comments by a user with their associated post data"""
+    limit = request.args.get('limit', 50, type=int)
+    offset = request.args.get('offset', 0, type=int)
+    
+    result = comment_service.get_user_comments_with_posts(user_id, limit, offset)
+    return jsonify({"success": True, **result}), 200

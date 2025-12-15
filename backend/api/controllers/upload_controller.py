@@ -5,7 +5,7 @@ import time
 
 upload_bp = Blueprint('upload', __name__, url_prefix='/upload')
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'}
 
 def allowed_file(filename):
     return '.' in filename and \

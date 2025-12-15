@@ -27,7 +27,7 @@ def seed_db():
             tables = [
                 "Users", "Communities", "Roles", "PrivacyTypes", "FollowStatus",
                 "Posts", "Comments", "PostLikes", "CommunityMembers", 
-                "Follows", "Messages", "AuditLog"
+                "Follows", "Messages"
             ]
             
             for table in tables:

@@ -315,13 +315,20 @@ class PostRepository:
         """
         query = text("""
             SELECT 
-                v.post_id, v.author_id as user_id, v.community_id, v.content, v.media_url, v.created_at, v.updated_at,
-                v.author_username, v.author_profile_picture,
-                v.like_count, v.comment_count,
-                EXISTS(SELECT 1 FROM PostLikes pl WHERE pl.post_id = v.post_id AND pl.user_id = :user_id) as liked_by_user
-            FROM user_feed_view v
-            WHERE v.viewing_user_id = :user_id
-            ORDER BY v.created_at DESC 
+                p.post_id, p.user_id, p.community_id, p.content, p.media_url, p.created_at, p.updated_at,
+                u.username AS author_username, u.profile_picture_url AS author_profile_picture,
+                COALESCE(COUNT(DISTINCT pl.user_id), 0) AS like_count,
+                COALESCE(COUNT(DISTINCT c.comment_id), 0) AS comment_count,
+                EXISTS(SELECT 1 FROM PostLikes pl2 WHERE pl2.post_id = p.post_id AND pl2.user_id = :user_id) as liked_by_user
+            FROM Posts p
+            JOIN Users u ON p.user_id = u.user_id
+            INNER JOIN Follows f ON p.user_id = f.following_id
+            LEFT JOIN PostLikes pl ON p.post_id = pl.post_id
+            LEFT JOIN Comments c ON p.post_id = c.post_id
+            WHERE f.follower_id = :user_id 
+              AND f.status_id = (SELECT status_id FROM FollowStatus WHERE status_name = 'accepted')
+            GROUP BY p.post_id, u.username, u.profile_picture_url
+            ORDER BY p.created_at DESC 
             LIMIT :limit OFFSET :offset
         """)
         
@@ -344,31 +351,42 @@ class PostRepository:
             })
         return posts_with_stats
 
-    def get_popular(self, limit: int = 50, offset: int = 0) -> List[Dict]:
-        """Get popular posts from the view"""
+    def get_popular(self, user_id: int, limit: int = 50, offset: int = 0) -> List[Dict]:
+        """Get popular posts from the view with liked_by_user status"""
         query = text("""
-            SELECT * FROM popular_posts_view
+            SELECT 
+                p.*,
+                EXISTS(SELECT 1 FROM PostLikes pl WHERE pl.post_id = p.post_id AND pl.user_id = :user_id) as liked_by_user
+            FROM popular_posts_view p
             LIMIT :limit OFFSET :offset
         """)
         
         result = self.db.session.execute(query, {
+            "user_id": user_id,
             "limit": limit,
             "offset": offset
         })
         
         posts = []
         for row in result.fetchall():
-            post = Post.from_row(row)
-            
-            posts.append({
-                **post.to_dict(),
+            # Create a dict from the row directly since we have mixed view columns + computed column
+            post_dict = {
+                'post_id': row.post_id,
+                'user_id': row.user_id,
                 'username': row.username,
                 'user_profile_picture': row.profile_picture_url,
+                'content': row.content,
+                'media_url': row.media_url,
+                'community_id': row.community_id,
                 'community_name': row.community_name,
+                'created_at': row.created_at.isoformat() if row.created_at else None,
+                'updated_at': row.updated_at.isoformat() if row.updated_at else None,
                 'like_count': row.like_count,
                 'comment_count': row.comment_count,
-                'engagement_score': row.engagement_score
-            })
+                'engagement_score': row.engagement_score,
+                'liked_by_user': row.liked_by_user
+            }
+            posts.append(post_dict)
             
         return posts
 

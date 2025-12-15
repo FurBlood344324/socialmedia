@@ -3,6 +3,8 @@
 # =====================
 /__pycache__/
 backend/static/uploads/*.png
+backend/static/uploads/*.svg
+backend/seed_data.sql
 *.py[cod]
 *$py.class
 *.so

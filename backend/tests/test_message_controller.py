@@ -16,6 +16,11 @@ class TestMessageController(BaseTest):
         r = self.client.post('/api/auth/login', json={"username": "m2", "password": "p"})
         self.t2 = r.get_json()['token']
         self.id2 = r.get_json()['user']['user_id']
+        
+        # U1 follows U2 (required for messaging)
+        self.client.post(f'/api/users/{self.id2}/follow',
+            headers={"Authorization": f"Bearer {self.t1}"}
+        )
 
     def test_message_flow(self):
         # 1. Send (U1 -> U2)
@@ -39,3 +44,4 @@ class TestMessageController(BaseTest):
             headers={"Authorization": f"Bearer {self.t2}"}
         )
         assert resp.status_code == 200
+

@@ -75,6 +75,22 @@ export interface Comment {
   reply_count?: number
 }
 
+// User comment with associated post data for profile tabs
+export interface UserCommentWithPost {
+  comment_id: number
+  comment_content: string
+  comment_created_at: string
+  post_id: number
+  post_content: string
+  media_url?: string
+  post_created_at: string
+  post_author_id: number
+  post_author_username: string
+  post_author_profile_picture?: string
+  commenter_username: string
+  commenter_profile_picture?: string
+}
+
 export interface FollowStats {
   followers_count: number
   following_count: number

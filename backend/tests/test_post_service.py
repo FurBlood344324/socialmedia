@@ -22,14 +22,6 @@ class TestPostService(BaseTest):
         assert res['success'] is True
         assert res['post']['content'] == "Valid Content"
 
-    def test_cannot_like_own_post(self):
-        res = self.post_service.create_post(self.user_id, content="My Post")
-        post_id = res['post']['post_id']
-        
-        like_res = self.post_service.like_post(post_id, self.user_id)
-        assert like_res['success'] is False
-        assert "own post" in like_res['error'].lower()
-
     def test_delete_ownership(self):
         # User 1 creates post
         res = self.post_service.create_post(self.user_id, content="To Delete")
@@ -46,3 +38,4 @@ class TestPostService(BaseTest):
         # User 1 deletes
         del_res = self.post_service.delete_post(post_id, self.user_id)
         assert del_res['success'] is True
+

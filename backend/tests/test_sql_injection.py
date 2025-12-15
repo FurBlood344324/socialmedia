@@ -3,7 +3,7 @@ Tests for SQL injection vulnerabilities in repository methods
 This test suite verifies that all SQL queries are properly parameterized and resist SQL injection attacks
 """
 
-import pytest
+import unittest
 from api.repositories.user_repository import UserRepository
 from api.repositories.post_repository import PostRepository
 from api.repositories.comment_repository import CommentRepository
@@ -454,4 +454,5 @@ class TestSQLInjection(BaseTest):
 
 
 if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+    unittest.main()
+

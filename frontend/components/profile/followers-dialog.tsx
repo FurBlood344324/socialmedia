@@ -21,6 +21,7 @@ interface FollowersDialogProps {
   users: FollowUser[]
   onFollowToggle?: (userId: number) => void
   isLoading?: boolean
+  currentUserId?: number
 }
 
 export function FollowersDialog({
@@ -29,6 +30,7 @@ export function FollowersDialog({
   users,
   onFollowToggle,
   isLoading,
+  currentUserId,
 }: FollowersDialogProps) {
   const [open, setOpen] = useState(false)
 
@@ -60,25 +62,31 @@ export function FollowersDialog({
                     )}
                   </div>
 
-                  {onFollowToggle && (
-                    <Button
-                      size="sm"
-                      variant={user.is_following ? "outline" : "default"}
-                      onClick={() => onFollowToggle(user.user_id)}
-                      disabled={isLoading}
-                    >
-                      {user.is_following ? (
-                        <>
-                          <UserMinus className="mr-1 h-4 w-4" />
-                          Unfollow
-                        </>
-                      ) : (
-                        <>
-                          <UserPlus className="mr-1 h-4 w-4" />
-                          Follow
-                        </>
-                      )}
-                    </Button>
+                  {currentUserId && user.user_id === currentUserId ? (
+                    <span className="text-muted-foreground bg-muted rounded-full px-3 py-1 text-xs font-medium">
+                      You
+                    </span>
+                  ) : (
+                    onFollowToggle && (
+                      <Button
+                        size="sm"
+                        variant={user.is_following ? "outline" : "default"}
+                        onClick={() => onFollowToggle(user.user_id)}
+                        disabled={isLoading}
+                      >
+                        {user.is_following ? (
+                          <>
+                            <UserMinus className="mr-1 h-4 w-4" />
+                            Unfollow
+                          </>
+                        ) : (
+                          <>
+                            <UserPlus className="mr-1 h-4 w-4" />
+                            Follow
+                          </>
+                        )}
+                      </Button>
+                    )
                   )}
                 </div>
               ))}

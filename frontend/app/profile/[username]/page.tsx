@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Loader2 } from "lucide-react"
+import { Grid3X3, Image as ImageIcon, Loader2, MessageSquare } from "lucide-react"
 import { FollowersDialog } from "@/components/profile/followers-dialog"
 import { ProfileHeader } from "@/components/profile/profile-header"
 import { ProfilePosts } from "@/components/profile/profile-posts"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { api } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
-import type { FollowUser, Post, ProfileData } from "@/lib/types"
+import type { FollowUser, Post, ProfileData, UserCommentWithPost } from "@/lib/types"
 
 export default function ProfilePage() {
   const params = useParams()
@@ -19,11 +20,13 @@ export default function ProfilePage() {
 
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [posts, setPosts] = useState<Post[]>([])
+  const [userComments, setUserComments] = useState<UserCommentWithPost[]>([])
   const [followers, setFollowers] = useState<FollowUser[]>([])
   const [following, setFollowing] = useState<FollowUser[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isFollowLoading, setIsFollowLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState("posts")
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -48,15 +51,17 @@ export default function ProfilePage() {
 
         // Only fetch specific data if profile exists and we have access
         if (profileData) {
-          const [userPosts, followersList, followingList] = await Promise.all([
+          const [userPosts, followersList, followingList, commentsWithPosts] = await Promise.all([
             api.getUserPosts(profileData.user_id).catch(() => []),
             api.getFollowers(profileData.user_id).catch(() => []),
             api.getFollowing(profileData.user_id).catch(() => []),
+            api.getUserCommentsWithPosts(profileData.user_id).catch(() => []),
           ])
 
           setPosts(userPosts)
           setFollowers(followersList)
           setFollowing(followingList)
+          setUserComments(commentsWithPosts)
 
           // Update stats with actual counts from fetched data only if we have full access
           setProfile((prev) => {
@@ -219,6 +224,7 @@ export default function ProfilePage() {
                 title="Followers"
                 users={followers}
                 onFollowToggle={handleUserFollowToggle}
+                currentUserId={user?.user_id}
               />
               <FollowersDialog
                 trigger={
@@ -229,17 +235,92 @@ export default function ProfilePage() {
                 title="Following"
                 users={following}
                 onFollowToggle={handleUserFollowToggle}
+                currentUserId={user?.user_id}
               />
             </>
           )}
         </div>
 
-        <ProfilePosts
-          posts={posts}
-          isPrivateAndNotFollowing={
-            profile.is_private && !profile.is_own_profile && !profile.is_following
-          }
-        />
+        {profile.is_private && !profile.is_own_profile && !profile.is_following ? (
+          <ProfilePosts posts={[]} isPrivateAndNotFollowing={true} />
+        ) : (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="posts" className="flex items-center gap-2">
+                <Grid3X3 className="h-4 w-4" />
+                Posts
+              </TabsTrigger>
+              <TabsTrigger value="comments" className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Comments
+              </TabsTrigger>
+              <TabsTrigger value="media" className="flex items-center gap-2">
+                <ImageIcon className="h-4 w-4" />
+                Media
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="posts" className="mt-6">
+              <ProfilePosts posts={posts} />
+            </TabsContent>
+
+            <TabsContent value="comments" className="mt-6">
+              {userComments.length === 0 ? (
+                <div className="rounded-lg border p-12 text-center">
+                  <MessageSquare className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
+                  <h3 className="text-lg font-semibold">No Comments Yet</h3>
+                  <p className="text-muted-foreground">Comments made on posts will appear here</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {userComments.map((item) => (
+                    <div key={item.comment_id} className="rounded-lg border p-4">
+                      {/* Original Post */}
+                      <div className="bg-muted/50 mb-3 rounded-lg p-3">
+                        <div className="mb-2 flex items-center gap-2">
+                          <div className="bg-primary/20 h-6 w-6 rounded-full" />
+                          <span className="text-sm font-medium">{item.post_author_username}</span>
+                        </div>
+                        <p className="text-muted-foreground line-clamp-2 text-sm">
+                          {item.post_content}
+                        </p>
+                      </div>
+                      {/* User's Comment */}
+                      <div className="flex gap-3">
+                        <div className="bg-primary/30 h-8 w-8 rounded-full" />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">{item.commenter_username}</span>
+                            <span className="text-muted-foreground text-xs">
+                              {new Date(
+                                item.comment_created_at.endsWith("Z")
+                                  ? item.comment_created_at
+                                  : `${item.comment_created_at}Z`
+                              ).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-sm">{item.comment_content}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="media" className="mt-6">
+              {posts.filter((p) => p.media_url).length === 0 ? (
+                <div className="rounded-lg border p-12 text-center">
+                  <ImageIcon className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
+                  <h3 className="text-lg font-semibold">No Media Yet</h3>
+                  <p className="text-muted-foreground">Posts with images will appear here</p>
+                </div>
+              ) : (
+                <ProfilePosts posts={posts.filter((p) => p.media_url)} />
+              )}
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </div>
   )

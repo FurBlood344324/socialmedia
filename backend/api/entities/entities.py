@@ -212,6 +212,7 @@ class Comment:
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.comment_id,
+            "comment_id": self.comment_id,
             "post_id": self.post_id,
             "user_id": self.user_id,
             "content": self.content,

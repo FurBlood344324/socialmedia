@@ -38,10 +38,10 @@ class UserService:
                 
                 if user.is_private and not can_view:
                     # Return limited info, with stats hidden (0) as requested
+                    # Do NOT include bio for privacy
                     return {
                         "user_id": user.user_id,
                         "username": user.username,
-                        "bio": user.bio,
                         "profile_picture_url": user.profile_picture_url,
                         "is_private": user.is_private,
                         "can_view_profile": False,

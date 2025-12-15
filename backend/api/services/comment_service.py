@@ -75,6 +75,16 @@ class CommentService:
             "offset": offset
         }
 
+    def get_user_comments_with_posts(self, user_id: int, limit: int = 50, offset: int = 0) -> Dict[str, Any]:
+        """Get all comments by a user with their associated post data"""
+        comments_with_posts = self.comment_repository.get_by_user_id_with_posts(user_id, limit, offset)
+        
+        return {
+            "comments": comments_with_posts,
+            "limit": limit,
+            "offset": offset
+        }
+
     def update_comment(self, comment_id: int, user_id: int, content: str) -> Dict[str, Any]:
         """Update a comment with ownership validation"""
         # Get existing comment

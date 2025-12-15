@@ -1,17 +1,22 @@
 from tests.base_test import BaseTest
 from api.services.message_service import MessageService
 from api.services.auth_service import AuthService
+from api.services.follow_service import FollowService
 
 class TestMessageService(BaseTest):
     def setUp(self):
         super().setUp()
         self.msg_service = MessageService()
         self.auth_service = AuthService()
+        self.follow_service = FollowService()
         
         r1 = self.auth_service.register("s_svc", "s@s.com", "p")
         self.sid = r1['user']['user_id']
         r2 = self.auth_service.register("r_svc", "r@s.com", "p")
         self.rid = r2['user']['user_id']
+        
+        # Create follow relationship (sender follows receiver)
+        self.follow_service.follow_user(self.sid, self.rid)
 
     def test_send_and_read(self):
         # Send
@@ -39,3 +44,4 @@ class TestMessageService(BaseTest):
         # Sender can delete
         del_res = self.msg_service.delete_message(mid, self.sid)
         assert del_res['success'] is True
+

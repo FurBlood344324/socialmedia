@@ -21,6 +21,7 @@ import type {
   UpdateCommunityData,
   UpdateProfileData,
   User,
+  UserCommentWithPost,
   UserSearchResponse,
 } from "./types"
 
@@ -138,6 +139,21 @@ class ApiClient {
     return data.posts || []
   }
 
+  async getUserCommentsWithPosts(
+    userId: number,
+    limit = 50,
+    offset = 0
+  ): Promise<UserCommentWithPost[]> {
+    const response = await fetch(
+      `${API_BASE_URL}/api/users/${userId}/comments?limit=${limit}&offset=${offset}`,
+      {
+        headers: this.getAuthHeaders(),
+      }
+    )
+    const data = await this.handleResponse<{ comments: UserCommentWithPost[] }>(response)
+    return data.comments || []
+  }
+
   // Posts API
   async getFeed(limit = 50, offset = 0): Promise<FeedResponse> {
     const response = await fetch(`${API_BASE_URL}/api/posts/feed?limit=${limit}&offset=${offset}`, {
@@ -209,6 +225,24 @@ class ApiClient {
     })
     const responseData = await this.handleResponse<{ post: Post }>(response)
     return responseData.post
+  }
+
+  async updatePost(postId: number, data: { content: string }): Promise<Post> {
+    const response = await fetch(`${API_BASE_URL}/api/posts/${postId}`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data),
+    })
+    const responseData = await this.handleResponse<{ post: Post }>(response)
+    return responseData.post
+  }
+
+  async deletePost(postId: number): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/posts/${postId}`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(),
+    })
+    return this.handleResponse<void>(response)
   }
 
   async createCommunity(data: CreateCommunityData): Promise<Community> {

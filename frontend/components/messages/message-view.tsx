@@ -140,7 +140,14 @@ export function MessageView({ userId, username, profilePicture, onClose }: Messa
                   <p
                     className={`mt-1 text-xs ${isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"}`}
                   >
-                    {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                    {formatDistanceToNow(
+                      new Date(
+                        message.created_at.endsWith("Z")
+                          ? message.created_at
+                          : `${message.created_at}Z`
+                      ),
+                      { addSuffix: true }
+                    )}
                   </p>
                 </div>
               </div>

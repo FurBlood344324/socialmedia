@@ -130,3 +130,34 @@ class CommentRepository:
         query = text("SELECT COUNT(*) FROM Comments WHERE parent_comment_id = :comment_id")
         result = self.db.session.execute(query, {"comment_id": comment_id})
         return result.scalar()
+
+    def get_by_user_id_with_posts(self, user_id: int, limit: int = 50, offset: int = 0) -> List[dict]:
+        """Get all comments by a user with their associated post data"""
+        query = text("""
+            SELECT 
+                c.comment_id, c.content as comment_content, c.created_at as comment_created_at,
+                p.post_id, p.content as post_content, p.media_url, p.created_at as post_created_at,
+                post_author.user_id as post_author_id, post_author.username as post_author_username,
+                post_author.profile_picture_url as post_author_profile_picture,
+                commenter.username as commenter_username, commenter.profile_picture_url as commenter_profile_picture
+            FROM Comments c
+            JOIN Posts p ON c.post_id = p.post_id
+            JOIN Users post_author ON p.user_id = post_author.user_id
+            JOIN Users commenter ON c.user_id = commenter.user_id
+            WHERE c.user_id = :user_id
+            ORDER BY c.created_at DESC
+            LIMIT :limit OFFSET :offset
+        """)
+        result = self.db.session.execute(query, {
+            "user_id": user_id,
+            "limit": limit,
+            "offset": offset
+        })
+        rows = [dict(row._mapping) for row in result.fetchall()]
+        # Convert datetime to isoformat for JSON serialization
+        for row in rows:
+            if row.get('comment_created_at'):
+                row['comment_created_at'] = row['comment_created_at'].isoformat()
+            if row.get('post_created_at'):
+                row['post_created_at'] = row['post_created_at'].isoformat()
+        return rows

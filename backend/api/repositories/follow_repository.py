@@ -152,7 +152,12 @@ class FollowRepository:
             "limit": limit,
             "offset": offset
         })
-        return [dict(row._mapping) for row in result.fetchall()]
+        rows = [dict(row._mapping) for row in result.fetchall()]
+        # Convert datetime to isoformat for JSON serialization
+        for row in rows:
+            if row.get('created_at'):
+                row['created_at'] = row['created_at'].isoformat()
+        return rows
 
     def count_followers(self, user_id: int) -> int:
         """Count accepted followers of a user"""

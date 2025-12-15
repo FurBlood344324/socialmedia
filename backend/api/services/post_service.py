@@ -175,9 +175,9 @@ class PostService:
             "offset": offset
         }
     
-    def get_discover_feed(self, limit: int = 50, offset: int = 0) -> Dict[str, Any]:
+    def get_discover_feed(self, user_id: int, limit: int = 50, offset: int = 0) -> Dict[str, Any]:
         """Get popular posts for discovery"""
-        posts = self.post_repository.get_popular(limit, offset)
+        posts = self.post_repository.get_popular(user_id, limit, offset)
         
         return {
             "posts": posts,
@@ -206,10 +206,6 @@ class PostService:
         post = self.post_repository.get_by_id(post_id)
         if not post:
             return {"success": False, "error": "Post not found"}
-        
-        # Prevent liking own posts
-        if post.user_id == user_id:
-            return {"success": False, "error": "You cannot like your own posts"}
         
         # Check if already liked
         if self.post_repository.has_user_liked(post_id, user_id):
