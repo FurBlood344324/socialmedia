@@ -55,10 +55,15 @@ export function PostCard({ post, onLikeUpdate }: PostCardProps) {
   }
 
   const formatTimeAgo = (dateString: string) => {
-    // Ensure date matches UTC
-    const date = new Date(dateString.endsWith("Z") ? dateString : `${dateString}Z`)
+    // Parse the date - backend sends timestamps without Z, treat as UTC
+    const date = new Date(dateString)
     const now = new Date()
     const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+    // Handle negative values (future dates or parsing errors)
+    if (seconds < 0) {
+      return "just now"
+    }
 
     if (seconds < 60) return `${seconds}s ago`
     const minutes = Math.floor(seconds / 60)

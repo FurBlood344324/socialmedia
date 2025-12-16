@@ -139,14 +139,7 @@ export default function FollowRequestsPage() {
                         <p className="text-muted-foreground text-sm">wants to follow you</p>
                         <p className="text-muted-foreground mt-1 text-xs">
                           {request.created_at
-                            ? formatDistanceToNow(
-                                new Date(
-                                  request.created_at.endsWith("Z")
-                                    ? request.created_at
-                                    : `${request.created_at}Z`
-                                ),
-                                { addSuffix: true }
-                              )
+                            ? formatDistanceToNow(new Date(request.created_at), { addSuffix: true })
                             : ""}
                         </p>
                       </div>

@@ -242,14 +242,7 @@ function CommentItem({ comment, currentUserId, onDelete, postId, depth = 0 }: Co
                 <div>
                   <span className="text-sm font-semibold">{comment.username}</span>
                   <span className="text-muted-foreground ml-2 text-xs">
-                    {formatDistanceToNow(
-                      new Date(
-                        comment.created_at.endsWith("Z")
-                          ? comment.created_at
-                          : `${comment.created_at}Z`
-                      ),
-                      { addSuffix: true }
-                    )}
+                    {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
                   </span>
                 </div>
                 {isOwner && (

@@ -90,16 +90,9 @@ export function ConversationList({ onSelectConversation, selectedUserId }: Conve
                   {conversation.last_message.content}
                 </p>
                 <p className="text-muted-foreground mt-1 text-xs">
-                  {formatDistanceToNow(
-                    new Date(
-                      conversation.last_message.created_at.endsWith("Z")
-                        ? conversation.last_message.created_at
-                        : `${conversation.last_message.created_at}Z`
-                    ),
-                    {
-                      addSuffix: true,
-                    }
-                  )}
+                  {formatDistanceToNow(new Date(conversation.last_message.created_at), {
+                    addSuffix: true,
+                  })}
                 </p>
               </div>
             </div>
