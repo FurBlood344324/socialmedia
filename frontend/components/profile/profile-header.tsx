@@ -91,11 +91,7 @@ export function ProfileHeader({ profile, onFollowToggle, isLoading }: ProfileHea
             </div>
             <button className="hover:underline">
               <span className="font-bold">{profile.stats.followers_count}</span>{" "}
-              <span className="text-muted-foreground">Followers</span>
-            </button>
-            <button className="hover:underline">
-              <span className="font-bold">{profile.stats.following_count}</span>{" "}
-              <span className="text-muted-foreground">Following</span>
+              <span className="text-muted-foreground">Connections</span>
             </button>
           </div>
 

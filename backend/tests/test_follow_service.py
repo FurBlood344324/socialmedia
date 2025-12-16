@@ -20,10 +20,11 @@ class TestFollowService(BaseTest):
         r3 = self.auth_service.register("follower", "f@e.com", "p")
         self.follower_id = r3['user']['user_id']
 
-    def test_follow_public_auto_accept(self):
+    def test_follow_public_now_pending(self):
+        # LinkedIn-style: all follow requests go to pending
         res = self.follow_service.follow_user(self.follower_id, self.pub_id)
         assert res['success'] is True
-        assert res['status'] == "accepted"
+        assert res['status'] == "pending"
 
     def test_follow_private_pending(self):
         res = self.follow_service.follow_user(self.follower_id, self.priv_id)

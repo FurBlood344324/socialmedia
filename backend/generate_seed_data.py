@@ -210,19 +210,35 @@ def generate_sql():
     
     lines.append("")
     
-    # Generate follows (300+)
+    # Generate follows (LinkedIn-style mutual connections)
     lines.append("-- ============================================")
-    lines.append("-- FOLLOWS (300+)")
+    lines.append("-- FOLLOWS (Mutual Connections - LinkedIn-style)")
     lines.append("-- ============================================")
     lines.append("")
     
+    # Track created connections to avoid duplicates
+    created_connections = set()
+    
     for i, user in enumerate(users):
-        num_following = 6 + (i % 12)
-        for j in range(num_following):
+        num_connections = 6 + (i % 12)
+        for j in range(num_connections):
             target_idx = (i + j + 1) % len(users)
             if target_idx != i:
-                status = "accepted" if j % 5 != 0 else "pending"
-                lines.append(f"INSERT INTO Follows (follower_id, following_id, status_id) VALUES ((SELECT user_id FROM Users WHERE username='{user}'), (SELECT user_id FROM Users WHERE username='{users[target_idx]}'), (SELECT status_id FROM FollowStatus WHERE status_name='{status}')) ON CONFLICT DO NOTHING;")
+                # Create a sorted tuple to represent the connection (bidirectional)
+                connection_key = tuple(sorted([i, target_idx]))
+                
+                # Only create if not already created
+                if connection_key not in created_connections:
+                    created_connections.add(connection_key)
+                    
+                    # Most connections are accepted (mutual), some are pending
+                    if j % 7 == 0:
+                        # Pending request (only one direction)
+                        lines.append(f"INSERT INTO Follows (follower_id, following_id, status_id) VALUES ((SELECT user_id FROM Users WHERE username='{user}'), (SELECT user_id FROM Users WHERE username='{users[target_idx]}'), (SELECT status_id FROM FollowStatus WHERE status_name='pending')) ON CONFLICT DO NOTHING;")
+                    else:
+                        # Mutual connection (both directions, accepted)
+                        lines.append(f"INSERT INTO Follows (follower_id, following_id, status_id) VALUES ((SELECT user_id FROM Users WHERE username='{user}'), (SELECT user_id FROM Users WHERE username='{users[target_idx]}'), (SELECT status_id FROM FollowStatus WHERE status_name='accepted')) ON CONFLICT DO NOTHING;")
+                        lines.append(f"INSERT INTO Follows (follower_id, following_id, status_id) VALUES ((SELECT user_id FROM Users WHERE username='{users[target_idx]}'), (SELECT user_id FROM Users WHERE username='{user}'), (SELECT status_id FROM FollowStatus WHERE status_name='accepted')) ON CONFLICT DO NOTHING;")
     
     lines.append("")
     

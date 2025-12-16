@@ -107,7 +107,7 @@ class ApiClient {
   }
 
   async unfollowUser(userId: number): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/unfollow`, {
+    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/follow`, {
       method: "DELETE",
       headers: this.getAuthHeaders(),
     })

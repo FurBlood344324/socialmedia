@@ -22,7 +22,6 @@ export default function ProfilePage() {
   const [posts, setPosts] = useState<Post[]>([])
   const [userComments, setUserComments] = useState<UserCommentWithPost[]>([])
   const [followers, setFollowers] = useState<FollowUser[]>([])
-  const [following, setFollowing] = useState<FollowUser[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isFollowLoading, setIsFollowLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -51,16 +50,14 @@ export default function ProfilePage() {
 
         // Only fetch specific data if profile exists and we have access
         if (profileData) {
-          const [userPosts, followersList, followingList, commentsWithPosts] = await Promise.all([
+          const [userPosts, followersList, commentsWithPosts] = await Promise.all([
             api.getUserPosts(profileData.user_id).catch(() => []),
             api.getFollowers(profileData.user_id).catch(() => []),
-            api.getFollowing(profileData.user_id).catch(() => []),
             api.getUserCommentsWithPosts(profileData.user_id).catch(() => []),
           ])
 
           setPosts(userPosts)
           setFollowers(followersList)
-          setFollowing(followingList)
           setUserComments(commentsWithPosts)
 
           // Update stats with actual counts from fetched data only if we have full access
@@ -81,7 +78,7 @@ export default function ProfilePage() {
               stats: {
                 posts_count: userPosts.length,
                 followers_count: followersList.length,
-                following_count: followingList.length,
+                following_count: followersList.length, // Same as followers since connections are mutual
               },
             }
           })
@@ -125,23 +122,11 @@ export default function ProfilePage() {
         // Follow user
         await api.followUser(profile.user_id)
 
-        if (profile.is_private) {
-          // If private, set as pending
-          setProfile({
-            ...profile,
-            has_pending_request: true,
-          })
-        } else {
-          // If public, set as following
-          setProfile({
-            ...profile,
-            is_following: true,
-            stats: {
-              ...profile.stats,
-              followers_count: profile.stats.followers_count + 1,
-            },
-          })
-        }
+        // All follow requests now go to pending (LinkedIn-style)
+        setProfile({
+          ...profile,
+          has_pending_request: true,
+        })
       }
     } catch (err) {
       console.error("Failed to toggle follow:", err)
@@ -207,10 +192,7 @@ export default function ProfilePage() {
           {profile.is_private && !profile.is_own_profile && !profile.is_following ? (
             <>
               <Button variant="outline" size="sm" disabled>
-                Followers
-              </Button>
-              <Button variant="outline" size="sm" disabled>
-                Following
+                Connections
               </Button>
             </>
           ) : (
@@ -218,22 +200,11 @@ export default function ProfilePage() {
               <FollowersDialog
                 trigger={
                   <Button variant="outline" size="sm">
-                    {profile.stats.followers_count} Followers
+                    {profile.stats.followers_count} Connections
                   </Button>
                 }
-                title="Followers"
+                title="Connections"
                 users={followers}
-                onFollowToggle={handleUserFollowToggle}
-                currentUserId={user?.user_id}
-              />
-              <FollowersDialog
-                trigger={
-                  <Button variant="outline" size="sm">
-                    {profile.stats.following_count} Following
-                  </Button>
-                }
-                title="Following"
-                users={following}
                 onFollowToggle={handleUserFollowToggle}
                 currentUserId={user?.user_id}
               />

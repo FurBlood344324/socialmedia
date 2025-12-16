@@ -37,9 +37,9 @@ class FollowService:
                     "follow": updated.to_dict()
                 }
         
-        # Determine status based on privacy
+        # All follow requests go to pending state (LinkedIn-style)
         # status_id: 1=pending, 2=accepted
-        status_id = 1 if following_user.is_private else 2
+        status_id = 1
         
         follow = Follow(
             follower_id=follower_id,
@@ -57,12 +57,18 @@ class FollowService:
         }
 
     def unfollow_user(self, follower_id: int, following_id: int) -> Dict[str, Any]:
-        """Unfollow a user"""
+        """Unfollow a user (breaks mutual connection - LinkedIn-style)"""
         existing = self.follow_repository.get_by_ids(follower_id, following_id)
         if not existing:
             return {"success": False, "error": "Not following this user"}
         
+        # Delete the primary follow relationship
         deleted = self.follow_repository.delete(follower_id, following_id)
+        
+        # Also delete the reverse follow relationship (mutual unfollow)
+        reverse_existing = self.follow_repository.get_by_ids(following_id, follower_id)
+        if reverse_existing:
+            self.follow_repository.delete(following_id, follower_id)
         
         if deleted:
             return {"success": True, "message": "Unfollowed successfully"}
@@ -83,6 +89,20 @@ class FollowService:
         
         # Update status to accepted (2)
         updated = self.follow_repository.update_status(follower_id, following_id, 2)
+        
+        # Create mutual follow (LinkedIn-style connection)
+        # The person accepting now also follows the requester
+        reverse_existing = self.follow_repository.get_by_ids(following_id, follower_id)
+        if not reverse_existing:
+            reverse_follow = Follow(
+                follower_id=following_id,
+                following_id=follower_id,
+                status_id=2  # Auto-accept the reverse
+            )
+            self.follow_repository.create(reverse_follow)
+        elif reverse_existing.status_id != 2:
+            # If reverse exists but not accepted, update it to accepted
+            self.follow_repository.update_status(following_id, follower_id, 2)
         
         return {
             "success": True,
