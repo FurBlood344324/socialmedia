@@ -50,8 +50,8 @@ CREATE TABLE Users (
     bio TEXT,
     profile_picture_url TEXT,
     is_private BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT chk_users_email_format CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 );
 
@@ -62,7 +62,7 @@ CREATE TABLE Communities (
     creator_id INT REFERENCES Users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     privacy_id INT REFERENCES PrivacyTypes(privacy_id),
     member_count INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ============================================
@@ -73,7 +73,7 @@ CREATE TABLE CommunityMembers (
     community_id INT REFERENCES Communities(community_id) ON DELETE CASCADE,
     user_id INT REFERENCES Users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     role_id INT REFERENCES Roles(role_id),
-    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    joined_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (community_id, user_id)
 );
 
@@ -81,7 +81,7 @@ CREATE TABLE Follows (
     follower_id INT REFERENCES Users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     following_id INT REFERENCES Users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     status_id INT REFERENCES FollowStatus(status_id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (follower_id, following_id)
 );
 
@@ -95,8 +95,8 @@ CREATE TABLE Posts (
     community_id INT REFERENCES Communities(community_id) ON DELETE CASCADE ON UPDATE CASCADE,
     content TEXT,
     media_url TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT chk_posts_content_or_media CHECK ((content IS NOT NULL AND content != '') OR (media_url IS NOT NULL AND media_url != ''))
 );
 
@@ -106,15 +106,15 @@ CREATE TABLE Comments (
     user_id INT REFERENCES Users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     content TEXT NOT NULL,
     parent_comment_id INT REFERENCES Comments(comment_id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT chk_comments_min_length CHECK (LENGTH(TRIM(content)) >= 1)
 );
 
 CREATE TABLE PostLikes (
     post_id INT REFERENCES Posts(post_id) ON DELETE CASCADE,
     user_id INT REFERENCES Users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (post_id, user_id)
 );
 
@@ -127,7 +127,7 @@ CREATE TABLE Messages (
     is_read BOOLEAN DEFAULT FALSE,
     sender_deleted BOOLEAN DEFAULT FALSE,
     receiver_deleted BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT chk_messages_different_users CHECK (sender_id != receiver_id)
 );
 
@@ -306,7 +306,7 @@ SELECT
     COALESCE(like_counts.like_count, 0) AS likes_last_7_days,
     COALESCE(comment_counts.comment_count, 0) AS comments_last_7_days,
     (COALESCE(post_counts.post_count, 0) + COALESCE(like_counts.like_count, 0) + COALESCE(comment_counts.comment_count, 0)) AS total_activity,
-    GREATEST(COALESCE(post_counts.last_post, '1970-01-01'::timestamp), COALESCE(like_counts.last_like, '1970-01-01'::timestamp), COALESCE(comment_counts.last_comment, '1970-01-01'::timestamp)) AS last_activity_at
+    GREATEST(COALESCE(post_counts.last_post, '1970-01-01'::timestamptz), COALESCE(like_counts.last_like, '1970-01-01'::timestamptz), COALESCE(comment_counts.last_comment, '1970-01-01'::timestamptz)) AS last_activity_at
 FROM Users u
 LEFT JOIN (SELECT user_id, COUNT(*) AS post_count, MAX(created_at) AS last_post FROM Posts WHERE created_at > NOW() - INTERVAL '7 days' GROUP BY user_id) post_counts ON u.user_id = post_counts.user_id
 LEFT JOIN (SELECT user_id, COUNT(*) AS like_count, MAX(created_at) AS last_like FROM PostLikes WHERE created_at > NOW() - INTERVAL '7 days' GROUP BY user_id) like_counts ON u.user_id = like_counts.user_id

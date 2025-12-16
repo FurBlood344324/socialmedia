@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { parseISO } from "date-fns"
 import { Bookmark, ChevronDown, ChevronUp, Heart, MessageCircle, Share2 } from "lucide-react"
 import { CommentSection } from "@/components/post/comment-section"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -55,8 +56,8 @@ export function PostCard({ post, onLikeUpdate }: PostCardProps) {
   }
 
   const formatTimeAgo = (dateString: string) => {
-    // Parse the date - backend sends timestamps without Z, treat as UTC
-    const date = new Date(dateString)
+    // Parse ISO 8601 timestamp with timezone
+    const date = parseISO(dateString)
     const now = new Date()
     const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 

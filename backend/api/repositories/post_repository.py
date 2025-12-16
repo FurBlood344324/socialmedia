@@ -306,13 +306,7 @@ class PostRepository:
         return posts_with_stats
 
     def get_feed_with_stats(self, user_id: int, limit: int = 50, offset: int = 0) -> List[Dict]:
-        """Get feed posts with engagement metrics (accepted follows only)
-        
-        OPTIMIZED: Single query with JOINs to avoid N+1 problem
-        - Fetches user info with JOIN (not separate queries)
-        - Batches like counts with subquery
-        - Batches comment counts with subquery
-        """
+        """Get feed posts with engagement metrics (accepted follows only)"""
         query = text("""
             SELECT 
                 p.post_id, p.user_id, p.community_id, p.content, p.media_url, p.created_at, p.updated_at,
@@ -369,7 +363,6 @@ class PostRepository:
         
         posts = []
         for row in result.fetchall():
-            # Create a dict from the row directly since we have mixed view columns + computed column
             post_dict = {
                 'post_id': row.post_id,
                 'user_id': row.user_id,
@@ -392,8 +385,7 @@ class PostRepository:
 
     def get_trending_hashtags(self, limit: int = 5) -> List[Dict]:
         """Get trending hashtags from recent posts"""
-        # Fetch recent posts to analyze hashtags
-        # Limiting to last 1000 posts for performance on large datasets
+
         query = text("SELECT content FROM Posts ORDER BY created_at DESC LIMIT 1000")
         result = self.db.session.execute(query)
         
@@ -403,17 +395,15 @@ class PostRepository:
             if not content:
                 continue
             
-            # Simple hashtag extraction
             words = content.split()
             for word in words:
                 if word.startswith('#') and len(word) > 1:
-                    tag = word[1:].lower() # Normalize to lowercase
-                    # Basic cleanup of punctuation
+                    tag = word[1:].lower() 
+
                     tag = "".join(c for c in tag if c.isalnum() or c == '_')
                     if tag:
                         hashtag_counts[tag] = hashtag_counts.get(tag, 0) + 1
         
-        # Sort by count and take top N
         sorted_tags = sorted(hashtag_counts.items(), key=lambda x: x[1], reverse=True)[:limit]
         
         return [{"hashtag": tag, "count": count} for tag, count in sorted_tags]

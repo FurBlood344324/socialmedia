@@ -7,6 +7,6 @@ CREATE TABLE Messages (
     is_read BOOLEAN DEFAULT FALSE,
     sender_deleted BOOLEAN DEFAULT FALSE,
     receiver_deleted BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT chk_messages_different_users CHECK (sender_id != receiver_id)
 );

@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { formatDistanceToNow } from "date-fns"
+import { formatDistanceToNow, parseISO } from "date-fns"
 import { Loader2, MessageCircle, MoreVertical, Reply, Trash2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -242,7 +242,7 @@ function CommentItem({ comment, currentUserId, onDelete, postId, depth = 0 }: Co
                 <div>
                   <span className="text-sm font-semibold">{comment.username}</span>
                   <span className="text-muted-foreground ml-2 text-xs">
-                    {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                    {formatDistanceToNow(parseISO(comment.created_at), { addSuffix: true })}
                   </span>
                 </div>
                 {isOwner && (

@@ -161,15 +161,6 @@ class UserRepository:
             "limit": limit
         })
         
-        # This view returns: 
-        # user_id, suggested_friend, mutual_count, follower_count, recommendation_score, etc...
-        # We might need to map it nicely or just return dicts.
-        # The view selects: fs.user_id, fs.suggested_friend, fs.mutual_count, fs.recommendation_score
-        # ... and joins Users u on fs.suggested_friend.
-        # It doesn't seem to select username/profile_pic?
-        # Let's verify view definition in init.sql if possible.
-        # But for now, returning dict is safe.
-        
         recommendations = []
         for row in result.fetchall():
             recommendations.append(dict(row._mapping))

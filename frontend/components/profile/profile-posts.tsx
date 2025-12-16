@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { parseISO } from "date-fns"
 import { Heart, MessageCircle, MoreHorizontal, Pencil, Share2, Trash2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -72,7 +73,7 @@ export function ProfilePosts({ posts: initialPosts, isPrivateAndNotFollowing }: 
   }
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString.endsWith("Z") ? dateString : `${dateString}Z`)
+    const date = parseISO(dateString)
     const now = new Date()
     const diff = now.getTime() - date.getTime()
     const seconds = Math.floor(diff / 1000)
@@ -88,7 +89,7 @@ export function ProfilePosts({ posts: initialPosts, isPrivateAndNotFollowing }: 
   }
 
   const isWithin15Minutes = (dateString: string) => {
-    const date = new Date(dateString.endsWith("Z") ? dateString : `${dateString}Z`)
+    const date = parseISO(dateString)
     const now = new Date()
     const diff = now.getTime() - date.getTime()
     const minutes = diff / (1000 * 60)

@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { parseISO } from "date-fns"
 import { Calendar, Clock, LinkIcon, Settings, UserMinus, UserPlus } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -19,7 +20,7 @@ export function ProfileHeader({ profile, onFollowToggle, isLoading }: ProfileHea
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+    return parseISO(dateString).toLocaleDateString("en-US", {
       month: "short",
       year: "numeric",
     })

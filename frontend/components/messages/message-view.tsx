@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useEffect, useRef, useState } from "react"
-import { formatDistanceToNow } from "date-fns"
+import { formatDistanceToNow, parseISO } from "date-fns"
 import { Send, X } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -140,7 +140,7 @@ export function MessageView({ userId, username, profilePicture, onClose }: Messa
                   <p
                     className={`mt-1 text-xs ${isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"}`}
                   >
-                    {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                    {formatDistanceToNow(parseISO(message.created_at), { addSuffix: true })}
                   </p>
                 </div>
               </div>

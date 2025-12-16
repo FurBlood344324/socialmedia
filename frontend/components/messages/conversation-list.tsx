@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { formatDistanceToNow } from "date-fns"
+import { formatDistanceToNow, parseISO } from "date-fns"
 import { MessageCircle } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -90,7 +90,7 @@ export function ConversationList({ onSelectConversation, selectedUserId }: Conve
                   {conversation.last_message.content}
                 </p>
                 <p className="text-muted-foreground mt-1 text-xs">
-                  {formatDistanceToNow(new Date(conversation.last_message.created_at), {
+                  {formatDistanceToNow(parseISO(conversation.last_message.created_at), {
                     addSuffix: true,
                   })}
                 </p>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { formatDistanceToNow } from "date-fns"
+import { formatDistanceToNow, parseISO } from "date-fns"
 import { UserPlus } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -139,7 +139,7 @@ export default function FollowRequestsPage() {
                         <p className="text-muted-foreground text-sm">wants to follow you</p>
                         <p className="text-muted-foreground mt-1 text-xs">
                           {request.created_at
-                            ? formatDistanceToNow(new Date(request.created_at), { addSuffix: true })
+                            ? formatDistanceToNow(parseISO(request.created_at), { addSuffix: true })
                             : ""}
                         </p>
                       </div>
